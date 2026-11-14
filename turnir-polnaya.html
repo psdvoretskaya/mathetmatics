@@ -1,0 +1,1008 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Звёздный турнир героев</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Russo+One&family=Nunito:wght@600;700;800;900&display=swap">
+<style>
+/* Layout: night-stadium tournament — header, teacher console, map of stages; a stage opens full width with task tabs */
+:root{
+  --bg:#eef1f9; --dot:#d2d9ec; --ink:#141b34; --muted:#4d5878; --card:#ffffff; --edge:#141b34; --soft:#f1f4fb;
+  --ball:#1d9a52; --hero:#e0332d; --space:#5a3fd4; --dino:#e9800f; --mask:#0b8bb0; --magic:#b0369a; --calc:#3657a8; --olymp:#b8860b; --div:#0f8a7a; --col:#c2410c;
+  --gold:#ffc629; --ok:#178a4c; --okbg:#ddf5e7; --bad:#d23338; --badbg:#fde4e5; --on:#ffffff;
+  --display:"Russo One","Arial Black",system-ui,sans-serif; --body:"Nunito",system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0b1027; --dot:#1a2250; --ink:#eef1ff; --muted:#a3acd0; --card:#161d3c; --edge:#05081a; --soft:#1e2750;
+  --ball:#22a85c; --hero:#e8463f; --space:#7559f0; --dino:#f08c1f; --mask:#1599c0; --magic:#c94bb2; --calc:#4c6fd0; --olymp:#c99a1a; --div:#18a593; --col:#e0591e;
+  --gold:#ffcf45; --ok:#51d68d; --okbg:#143524; --bad:#ff6f73; --badbg:#3c1a21; --on:#ffffff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b1027; --dot:#1a2250; --ink:#eef1ff; --muted:#a3acd0; --card:#161d3c; --edge:#05081a; --soft:#1e2750;
+  --ball:#22a85c; --hero:#e8463f; --space:#7559f0; --dino:#f08c1f; --mask:#1599c0; --magic:#c94bb2; --calc:#4c6fd0; --olymp:#c99a1a; --div:#18a593; --col:#e0591e;
+  --gold:#ffcf45; --ok:#51d68d; --okbg:#143524; --bad:#ff6f73; --badbg:#3c1a21; --on:#ffffff; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;font-weight:600;line-height:1.45;margin:0;
+  background-image:radial-gradient(var(--dot) 1.4px,transparent 1.6px);background-size:18px 18px}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 48px}
+h1,h2,h3,h4{font-family:var(--display);font-weight:400;margin:0;line-height:1.15;text-wrap:balance}
+button{font-family:var(--body)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.panel{background:var(--card);border:3px solid var(--edge);border-radius:18px;box-shadow:5px 5px 0 var(--edge)}
+.btn{font:800 16px var(--body);background:var(--ink);color:var(--bg);border:3px solid var(--edge);border-radius:12px;padding:10px 18px;cursor:pointer;min-height:46px}
+.btn.ghost{background:var(--card);color:var(--ink)}.btn.big{font-size:18px;padding:12px 22px}.btn.danger{background:var(--bad);color:var(--on)}
+.btn:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.muted{color:var(--muted)}small{font-size:14px}
+.top{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.brand{display:flex;gap:14px;align-items:center;min-width:0}.badge{width:60px;height:60px;flex:none}
+.brand h1{font-size:clamp(24px,4.4vw,36px)}.brand p{margin:4px 0 0;color:var(--muted);font-size:15px}
+.teacher{padding:16px 18px;margin-bottom:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.teacher h3{font-size:18px;grid-column:1/-1}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field>span,.qtag,.lbl{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:800}
+.seg{display:flex;flex-wrap:wrap;gap:4px;background:var(--soft);border-radius:12px;padding:4px}
+.seg button{flex:1;border:0;background:transparent;color:var(--ink);font-weight:800;font-size:14px;padding:8px;border-radius:9px;cursor:pointer;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+select,input[type=text]{font:700 17px var(--body);color:var(--ink);background:var(--card);border:2px solid var(--edge);border-radius:10px;padding:9px 10px;width:100%}
+.check{display:flex;gap:8px;align-items:center;font-weight:700}
+.note{grid-column:1/-1;font-size:14px;color:var(--muted);margin:0}
+.roster{grid-column:1/-1}.rlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.rrow{display:flex;gap:6px}.rrow input{flex:1;min-width:0}.rrow .btn{padding:6px 12px}
+.whobar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;padding:10px 14px;margin-bottom:16px}
+.whobar .lab{font-family:var(--display);font-size:17px}
+.kid{font:900 17px var(--body);border:3px solid var(--edge);border-radius:999px;padding:6px 16px;background:var(--card);color:var(--ink);cursor:pointer}
+.kid[aria-pressed="true"]{background:var(--gold);color:#141b34;box-shadow:2px 2px 0 var(--edge)}
+/* map */
+.mapsum{margin:0 0 12px;font-size:17px}
+.mapgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;position:relative}
+@media (max-width:860px){.mapgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stage{border:3px solid var(--edge);border-radius:18px;color:var(--on);padding:12px;cursor:pointer;text-align:left;box-shadow:5px 5px 0 var(--edge);
+  display:flex;flex-direction:column;gap:5px;min-width:0;transition:transform .1s;font-family:var(--body);position:relative}
+.stage:hover{transform:translateY(-3px)}
+.stage .no{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;opacity:.9}
+.stage .ico{font-size:34px;line-height:1}.stage b{font:400 18px var(--display);line-height:1.1}
+.stage small{font-size:13px;opacity:.95;line-height:1.3}
+.stage .bar{height:9px;border-radius:9px;background:rgba(255,255,255,.3);overflow:hidden;margin-top:auto}.stage .bar i{display:block;height:100%;background:var(--gold)}
+.stage .cnt{font-size:13px;font-weight:900}
+.stage.won{outline:4px solid var(--gold);outline-offset:3px}
+.c-magic{background:var(--magic)}.c-calc{background:var(--calc)}.c-mask{background:var(--mask)}.c-space{background:var(--space)}.c-olymp{background:var(--olymp)}
+.c-div{background:var(--div)}.c-col{background:var(--col)}.c-log{background:var(--ink);color:var(--bg)}
+/* section */
+.whead{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end;justify-content:space-between;margin:12px 0}
+.whead h2{font-size:clamp(24px,4vw,32px)}.whead p{margin:4px 0 0;color:var(--muted);max-width:62ch}
+.clock{font:900 18px var(--body);font-variant-numeric:tabular-nums;background:var(--card);border:3px solid var(--edge);border-radius:999px;padding:4px 14px}
+.clock.warn{background:var(--bad);color:var(--on)}
+.hearts{color:var(--hero);letter-spacing:2px;font-size:18px;white-space:nowrap}.hearts .lost{color:var(--muted);opacity:.35}
+.ptabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.ptab{font:800 14px var(--body);border:3px solid var(--edge);background:var(--card);color:var(--ink);border-radius:12px;padding:7px 11px;cursor:pointer}
+.ptab[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.ptab.done::after{content:" ✓";color:var(--ok)}.ptab.open::after{content:" ⏸";color:var(--dino)}
+.grpbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:12px}.grpbar:empty{display:none}
+@media (max-width:760px){.grpbar{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.grpb{border:3px solid var(--edge);border-radius:14px;background:var(--card);color:var(--ink);padding:8px 10px;cursor:pointer;text-align:left;display:grid;grid-template-columns:auto 1fr;gap:0 8px;align-items:center;box-shadow:3px 3px 0 var(--edge)}
+.grpb span{font-size:26px;grid-row:span 2}.grpb b{font:400 14px var(--display);line-height:1.1}.grpb small{font-size:12px;font-weight:900;color:var(--muted)}
+.grpb.on{background:var(--olymp);color:var(--on)}.grpb.on small{color:var(--on)}.grpb.won{outline:3px solid var(--gold);outline-offset:1px}
+.blkhead{font:400 18px var(--display);margin:0 0 8px}
+.lifebox{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border:3px solid var(--edge);border-radius:999px;background:var(--card)}
+.lifebox .hearts{font-size:20px}.pop{animation:pop .5s}@keyframes pop{40%{transform:scale(1.35)}}
+.dead h2{color:var(--bad)}.confetti{position:fixed;inset:0;pointer-events:none;z-index:40}.lrow2{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.lrow2 b{min-width:90px}
+.tcard2{padding:18px;display:flex;flex-direction:column;gap:14px;margin-bottom:14px;min-width:0}
+.task{font-size:19px;font-weight:800;line-height:1.45;margin:0;max-width:70ch}
+.stepline{font:900 22px var(--body);font-variant-numeric:tabular-nums}
+.ask{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.ask label{font-weight:800}
+.ask .inp{display:inline-flex;align-items:center;gap:6px;font-weight:800}
+.ask input{width:120px;font-size:22px;font-weight:900;text-align:center}
+.ask.big input{width:150px;font-size:26px}
+.ask.right input{border-color:var(--ok);background:var(--okbg);color:var(--ok)}
+.choose .lbl2{font-weight:800;margin-bottom:8px}
+.chip{font:900 19px var(--body);border:3px solid var(--edge);border-radius:12px;background:var(--card);color:var(--ink);padding:10px 16px;cursor:pointer;min-height:48px}
+.chip.right{background:var(--okbg);border-color:var(--ok);color:var(--ok)}.chip.wrong{background:var(--badbg);border-color:var(--bad);color:var(--bad);opacity:.7}
+.hints ol{margin:8px 0 0;padding-left:22px;display:flex;flex-direction:column;gap:6px}.hints li{background:var(--soft);border-radius:10px;padding:8px 10px}
+.fb{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.msg{font-weight:800;padding:10px 14px;border-radius:12px;border:2px solid currentColor;margin:0}
+.msg.ok{background:var(--okbg);color:var(--ok)}.msg.bad{background:var(--badbg);color:var(--bad)}.msg.info{background:var(--soft);color:var(--ink);border-color:var(--edge)}
+.msg small{display:block;font-weight:700;color:var(--ink)}
+.shake{animation:sh .35s}@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.modal{position:fixed;inset:0;background:rgba(8,12,30,.72);display:grid;place-items:center;padding:16px;z-index:20}
+.modal .panel{width:min(640px,100%);max-height:calc(100% - 20px);overflow:auto;padding:22px;display:flex;flex-direction:column;gap:14px}
+.hellobox h2{font-size:clamp(24px,5vw,32px)}
+.how p{margin:0}.how svg{max-width:100%;height:auto}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);font-weight:800;
+  padding:10px 18px;border-radius:999px;border:3px solid var(--edge);z-index:30;max-width:calc(100% - 32px);text-align:center}
+/* journal */
+.logbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}.logbar select{width:auto}
+.tablewrap{overflow-x:auto}
+table.log{width:100%;border-collapse:collapse;font-size:14.5px;min-width:760px}
+table.log th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:8px;border-bottom:3px solid var(--edge)}
+table.log td{padding:8px;border-bottom:1px solid var(--dot);vertical-align:top}
+table.log td.num{font-variant-numeric:tabular-nums;white-space:nowrap}table.log .res{font-weight:900}
+.empty{padding:22px;text-align:center;color:var(--muted)}
+.pill{display:inline-block;font-weight:800;font-size:13px;padding:2px 9px;border-radius:999px;white-space:nowrap;border:2px solid currentColor}
+.pill.ok{background:var(--okbg);color:var(--ok)}.pill.bad{background:var(--badbg);color:var(--bad)}.pill.open{background:var(--soft);color:var(--dino)}
+.todo{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-bottom:16px}
+.tcard{border:2px solid var(--edge);border-radius:12px;padding:10px 12px;background:var(--soft);min-width:0}
+.tcard h4{margin:0 0 4px;font:900 16px var(--body);display:flex;justify-content:space-between;gap:8px}.tcard p{margin:4px 0 0;font-size:14px}
+.tcard.all{background:var(--okbg);border-color:var(--ok)}
+h3.sub{font-size:18px;margin:4px 0 10px}
+.rep{padding:16px;margin-bottom:12px;gap:10px;display:flex;flex-direction:column}.rep pre{white-space:pre-wrap;font:700 15px var(--body);margin:0}
+.msq{display:grid;grid-template-columns:repeat(3,minmax(0,92px));gap:6px;align-self:flex-start}
+.mc{height:78px;border:3px solid var(--edge);border-radius:12px;font:900 26px var(--body);text-align:center;display:grid;place-items:center;background:var(--card);color:var(--ink);width:100%;min-width:0}
+.mc.given{background:var(--soft)}input.mc{background:#fff8dc;color:#141b34}
+input.mc.right{background:var(--okbg);color:var(--ok);border-color:var(--ok)}input.mc.wrong{background:var(--badbg);color:var(--bad);border-color:var(--bad)}input.mc.shown{outline:3px dashed var(--gold)}
+
+.expr{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end;font:900 clamp(22px,4.4vw,32px) var(--body);font-variant-numeric:tabular-nums}
+.expr .tk{padding:4px 2px}.expr .res{color:var(--calc)}
+.op{position:relative;font:900 clamp(22px,4.4vw,32px) var(--body);min-width:48px;min-height:52px;border:3px solid var(--edge);border-radius:12px;background:#fff8dc;color:#141b34;cursor:pointer}
+.op span{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:15px;background:var(--calc);color:#fff;border-radius:999px;min-width:24px;padding:0 6px}
+.op span:empty{display:none}.op.on{background:var(--okbg)}.op.wrong span{background:var(--bad)}
+.steps{display:flex;flex-direction:column;gap:10px}
+
+.eqbig{font:900 clamp(24px,5vw,38px) var(--body);font-variant-numeric:tabular-nums;word-break:break-word}
+.mk{display:inline-block;background:var(--hero);color:#fff;border:3px solid var(--edge);border-radius:999px;padding:0 12px;font-family:var(--display);font-size:.85em}
+.layer{border-left:5px solid var(--mask);padding:4px 0 4px 12px;display:flex;flex-direction:column;gap:10px}
+
+.rgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:14px}
+@media (max-width:760px){.rgrid{grid-template-columns:minmax(0,1fr)}}
+.ptext{padding:16px}.ptext p{margin:0 0 10px;font-size:18px}
+.stepq{font:900 19px var(--body);padding:10px 12px;border-radius:12px;background:var(--space);color:var(--on)}.stepq.ok{background:var(--ok)}
+.facts{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}.facts li{padding:6px 10px;border-radius:10px;background:var(--okbg);color:var(--ok);font-weight:800}.facts small{color:var(--ink)}
+.stage2{position:relative;border:3px solid var(--edge);border-radius:16px;overflow:hidden;background:#090d24;touch-action:none}
+.stage2 canvas{display:block;width:100%;height:340px}
+.over{position:absolute;inset:0;display:grid;place-items:center;text-align:center;background:rgba(9,13,36,.78);color:#eef1ff;padding:16px}
+.over h3{font-size:26px;color:#ffcf45;margin-bottom:8px}.over p{margin:0 0 14px}
+.rhud{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}.pad{display:flex;gap:8px}.pad .btn{min-width:56px}
+
+.model{display:flex;flex-direction:column;gap:10px;border:3px dashed var(--bc,var(--olymp));border-radius:14px;padding:12px;min-width:0;background:color-mix(in srgb,var(--bc,var(--olymp)) 6%,transparent)}
+.oc{border-top:14px solid var(--bc)}.chest{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font:400 17px var(--display);color:var(--bc)}
+.advwrap{margin-bottom:12px}.adv{border:3px solid var(--edge);border-radius:18px;background:linear-gradient(180deg,#bfe3ff,#e9f6d8);padding:10px;box-shadow:5px 5px 0 var(--edge);color:#141b34}
+.advtop{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;font-weight:800;padding:0 6px}.advtop>b{font:400 18px var(--display)}
+.advsvg{width:100%;height:auto;display:block}.isl{cursor:pointer}.isl:hover circle,.isl:focus circle{filter:brightness(1.12)}.isl.on circle{filter:drop-shadow(0 0 8px #ffc629)}
+.il{font:400 17px var(--display);fill:#141b34}.il2{font-size:16px;fill:#141b34;letter-spacing:2px}
+.ptabs.cards{gap:12px}.cards .ptab{min-width:150px;min-height:64px;border-radius:14px;background:repeating-linear-gradient(45deg,var(--bc,var(--olymp)) 0 10px,color-mix(in srgb,var(--bc,var(--olymp)) 80%,#fff) 10px 20px);color:#fff;font-size:15px;text-shadow:1px 1px 0 #141b34;box-shadow:3px 3px 0 var(--edge);transition:transform .3s}
+.cards .ptab[aria-pressed="true"]{background:var(--card);color:var(--ink);text-shadow:none;transform:rotateY(360deg)}.cards .ptab.done{background:var(--okbg);color:var(--ok);text-shadow:none}.cards .ptab.done::after{content:" 💎"}
+.owlbox{display:grid;grid-template-columns:70px 1fr;gap:4px 12px;align-items:center}.owlbox .owl{width:70px;grid-row:span 2}.owlbox .btn{justify-self:start}
+.bubble{position:relative;background:var(--soft);border:2px solid var(--edge);border-radius:14px;padding:10px 12px;font-weight:700}.bubble::before{content:"";position:absolute;left:-10px;top:16px;border:8px solid transparent;border-right-color:var(--edge);border-left:0}
+.lrow{display:flex;gap:10px;margin-bottom:8px}
+.lt{font:900 46px var(--display);width:66px;height:72px;border:2px solid transparent;border-radius:12px;background:none;color:var(--ink);cursor:pointer;display:grid;place-items:center;line-height:1}
+.lt.sel{border-color:var(--olymp);background:var(--soft)}
+.f-stripe{background:repeating-linear-gradient(0deg,var(--ink) 0 3px,transparent 3px 6px);-webkit-background-clip:text;background-clip:text;color:transparent}
+.f-dots{background:radial-gradient(circle,var(--ink) 3px,transparent 3.4px) 0 0/8px 8px;-webkit-background-clip:text;background-clip:text;color:transparent}
+.f-cut{background:linear-gradient(var(--ink) 45%,transparent 45% 58%,var(--ink) 58%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.f-small{font-size:26px}.f-big{font-size:62px}.f-rot{transform:rotate(22deg)}.f-flip{transform:rotate(180deg)}
+.f-outline{color:transparent;-webkit-text-stroke:2px var(--ink)}.f-thin{font-family:var(--body);font-weight:600}.f-bold{font-family:var(--display)}
+.lword{font-size:20px}
+.boxes{display:flex;flex-wrap:wrap;gap:8px}.bx{min-width:70px;height:58px;border:3px solid var(--edge);border-radius:10px;background:var(--card);color:var(--muted);font:900 18px var(--body);cursor:pointer;letter-spacing:2px}
+.bx.full{background:#fff3c4;color:#8a5a2b}
+.antsvg{max-width:420px;width:100%;height:auto}
+.cutsvg{max-width:380px;width:100%;height:auto}.cutsvg rect,.cutsvg polygon{fill:#b8b8c4;stroke:#141b34;stroke-width:1.5;cursor:pointer}.cutsvg .on{fill:var(--gold)}
+.big2{font:900 26px var(--body);min-width:36px;text-align:center}
+.socks{display:flex;flex-wrap:wrap;gap:6px;min-height:30px}.socks i{width:26px;height:26px;border-radius:50%;border:2px solid var(--edge);display:block}
+.scale{display:flex;flex-direction:column;align-items:center;gap:4px}.pan{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;max-width:420px;min-height:44px;align-items:flex-end}
+.pan i{display:block;border-radius:50%;border:2px solid var(--edge)}.pan .sm{width:22px;height:22px;background:#e9a35a}.pan .lg{width:40px;height:40px;background:#c96b2d}
+.beam{width:min(420px,100%);height:10px;border-radius:6px;background:var(--ink)}
+.plist{margin:0;padding-left:26px;columns:2;font-weight:700}
+.venn{max-width:420px;width:100%;height:auto}.vgrid{display:flex;flex-direction:column;gap:8px}
+
+.div .pool{font-size:28px;line-height:1.3;word-break:break-all;min-height:40px}
+.groups{display:flex;flex-wrap:wrap;gap:8px}.grp{border:3px solid var(--div);border-radius:12px;padding:6px 8px;min-width:90px;font-size:24px}.grp small{display:block;font-size:12px;color:var(--muted);font-weight:800}
+.tri{width:200px;max-width:100%;height:auto}
+.holes{display:grid;grid-template-columns:repeat(3,minmax(0,110px));gap:12px}
+.hole{height:90px;border:3px solid var(--edge);border-radius:50% 50% 14px 14px;background:#6b4a2b;cursor:pointer;position:relative;overflow:hidden}
+.hole span{position:absolute;left:50%;bottom:-70px;transform:translateX(-50%);width:76px;height:70px;border-radius:38px 38px 10px 10px;background:#a07850;color:#fff;font:900 26px var(--body);display:grid;place-items:center;transition:bottom .2s}
+.hole.up span{bottom:6px}.hole.miss span{background:var(--bad)}
+
+.colwrap{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+.colm{font:900 40px var(--body);font-variant-numeric:tabular-nums;display:flex;flex-direction:column;align-items:flex-end}
+.colm>div{display:flex}.colm span{width:38px;text-align:center;display:block;min-height:1em}
+.colm .cr span{font-size:22px;color:var(--col);min-height:26px}
+.colm .mul{border-bottom:4px solid var(--ink)}.colm .resr span{color:var(--col)}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg class="badge" viewBox="0 0 64 64" aria-hidden="true"><path d="M14 8h36v10c0 12-8 20-18 20S14 30 14 18Z" fill="var(--gold)" stroke="var(--edge)" stroke-width="3.5"/><path d="M14 13H6c0 9 4 13 10 14M50 13h8c0 9-4 13-10 14" fill="none" stroke="var(--edge)" stroke-width="3.5"/><path d="M27 38h10v9H27zM20 47h24v9H20z" fill="var(--hero)" stroke="var(--edge)" stroke-width="3.5"/><path d="m32 14 2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z" fill="#fff" stroke="var(--edge)" stroke-width="2"/></svg>
+      <div><h1>Звёздный турнир героев</h1><p>Магический квадрат, порядок действий, уравнения, задачи, олимпиада, деление и столбик</p></div>
+    </div>
+    <button class="btn ghost" id="teacherBtn" aria-expanded="false" aria-controls="teacher">Пульт учителя</button>
+  </header>
+  <div class="panel whobar" id="whoBar"></div>
+  <section class="panel teacher" id="teacher" hidden>
+    <h3>Пульт учителя</h3>
+    <div class="field"><span>Таймер на задание</span><div class="seg" id="s-timer"><button data-v="up">Прямой</button><button data-v="down">Обратный</button><button data-v="off">Без таймера</button></div></div>
+    <div class="field"><span>Время (обратный отсчёт)</span><select id="s-secs"><option value="30">30 секунд</option><option value="60">1 минута</option><option value="120">2 минуты</option><option value="180">3 минуты</option><option value="300">5 минут</option><option value="600">10 минут</option></select></div>
+    <div class="field"><span>Жизни на старте</span><select id="s-lives"><option value="3">3 жизни</option><option value="5">5 жизней</option><option value="7">7 жизней</option><option value="10">10 жизней</option><option value="0">Без жизней (бесконечно)</option></select></div>
+    <div class="field"><span>Правила жизней</span><label class="check"><input type="checkbox" id="s-loss"> Снимать жизнь за ошибку</label><label class="check"><input type="checkbox" id="s-bonus"> +1 жизнь за 5 верных ответов подряд</label></div>
+    <div class="field roster"><span>Жизни учеников</span><div class="rlist" id="livesEd"></div></div>
+    <div class="field"><span>Код учителя (по желанию)</span><input type="text" id="s-pin" maxlength="6" inputmode="numeric" placeholder="без кода" autocomplete="off"><small class="muted">С кодом пульт не откроют без вас.</small></div>
+    <div class="field"><span>Скорость аркад</span><div class="seg" id="s-speed"><button data-v="0.6">Медленно</button><button data-v="1">Средне</button><button data-v="1.5">Быстро</button></div></div>
+    <div class="field roster"><span>Google-таблица с результатами</span><input type="text" id="s-gs" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off"><div class="row"><button class="btn ghost" id="gsTest" type="button">Проверить связь</button><small class="muted" id="gsInfo"></small></div></div>
+    <div class="field"><span>Звук</span><label class="check"><input type="checkbox" id="s-sound"> Звуки при ответах</label></div>
+    <div class="field roster"><span>Ученики</span><div class="rlist" id="rosterEd"></div></div>
+    <p class="note">Настройки сохраняются в этом браузере. Таймер и жизни меняются со следующего задания. Разделы можно проходить в любом порядке и переходить между ними, не закончив.</p>
+  </section>
+
+  <main>
+    <section id="map"><p class="mapsum" id="mapSum"></p><div class="mapgrid" id="mapGrid"></div></section>
+    <section id="sec" hidden><div id="secHead"></div><div class="grpbar" id="secGroups"></div><div class="ptabs" id="secTabs"></div><div id="stageBox"></div></section>
+    <section id="log" hidden>
+      <div class="row"><button class="btn ghost" id="logBack">← Карта турнира</button></div>
+      <div class="whead"><div><h2>📒 Журнал результатов</h2><p id="logWhere"></p></div></div>
+      <div class="panel" style="padding:16px">
+        <div class="logbar">
+          <label for="logWho">Игрок</label><select id="logWho"></select>
+          <label for="logSec">Раздел</label><select id="logSec"></select>
+          <label for="logSt">Показать</label><select id="logSt"><option value="">Все записи</option><option value="1">Только не доделанное</option></select>
+          <span style="flex:1"></span>
+          <button class="btn" id="logRep">Отчёт для родителей</button><button class="btn ghost" id="logDl">Скачать таблицу</button><button class="btn ghost" id="logCopy">Скопировать</button><button class="btn ghost" id="logClear">Очистить</button>
+        </div>
+        <div id="logConfirm"></div>
+        <h3 class="sub" id="todoHead">Что осталось сделать</h3><div class="todo" id="logTodo"></div>
+        <h3 class="sub">Все записи</h3><div class="tablewrap" id="logTable"></div>
+      </div>
+    </section>
+  </main>
+</div>
+<script>
+/* ===== helpers & settings ===== */
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const fmt=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+const el=(h)=>{const d=document.createElement('div');d.innerHTML=h.trim();return d.firstChild};
+const DEF={timer:'up',secs:120,lives:3,speed:1,sound:true};
+let CFG={...DEF};
+try{Object.assign(CFG,JSON.parse(localStorage.getItem('zt-cfg')||'{}'))}catch(e){}
+const saveCfg=()=>{try{localStorage.setItem('zt-cfg',JSON.stringify(CFG))}catch(e){}};
+CFG.roster=(Array.isArray(CFG.roster)?CFG.roster:[]).filter(Boolean);
+CFG.sel=(Array.isArray(CFG.sel)?CFG.sel:[]).filter(n=>CFG.roster.includes(n)).slice(0,2);if(!CFG.sel.length)CFG.sel=['Игрок'];
+const names=()=>CFG.sel.slice(),who=()=>names().join(' и ');
+// lives belong to each pupil and are kept between games; the teacher adds or takes them on the console
+CFG.lv=CFG.lv&&typeof CFG.lv==='object'?CFG.lv:{};if(CFG.lifeLoss===undefined)CFG.lifeLoss=true;if(CFG.bonus===undefined)CFG.bonus=true;
+const lifeOf=n=>CFG.lives?(CFG.lv[n]??CFG.lives):Infinity;
+const alive=()=>!CFG.lives||names().every(n=>!CFG.roster.includes(n)||lifeOf(n)>0);
+let streak=0;
+const hearts=n=>!isFinite(n)?'<span class="hearts">♥ ∞</span>':`<span class="hearts" aria-label="жизней: ${n}">${'♥'.repeat(Math.max(0,n))}<span class="lost">${'♥'.repeat(Math.max(0,(CFG.lives||0)-n))}</span></span>`;
+let actx=null;
+function sfx(k){if(!CFG.sound)return;try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();
+  ({ok:[523,659,784],bad:[300,200],time:[440,440,440],win:[523,659,784,1047]}[k]||[440]).forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();
+    o.type=k==='bad'?'sawtooth':'triangle';o.frequency.value=f;const t=actx.currentTime+i*.12;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.18,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.18);
+    o.connect(g).connect(actx.destination);o.start(t);o.stop(t+.2)})}catch(e){}}
+class Clock{
+  constructor(e){this.el=e;this.t=null;this.paused=false}
+  start(onEnd){this.stop();this.mode=CFG.timer;this.left=+CFG.secs;this.up=0;this.onEnd=onEnd;this.paused=false;this.render();
+    if(this.mode!=='off')this.t=setInterval(()=>this.tick(),1000)}
+  tick(){if(this.paused||document.querySelector('#hello'))return;
+    if(this.mode==='up')this.up++;else{this.left--;if(this.left<=0){this.left=0;this.render();this.stop();sfx('time');this.onEnd&&this.onEnd();return}}this.render()}
+  render(){if(!this.el)return;if(this.mode==='off'){this.el.hidden=true;return}this.el.hidden=false;
+    this.el.textContent=(this.mode==='up'?'⏱ ':'⏳ ')+fmt(this.mode==='up'?this.up:this.left);this.el.classList.toggle('warn',this.mode==='down'&&this.left<=10&&!!this.t)}
+  stop(){clearInterval(this.t);this.t=null;this.el&&this.el.classList.remove('warn')}
+}
+let toastT;function toast(t){let e=$('#toast');if(!e){e=el('<div id="toast" class="toast" role="status"></div>');document.body.appendChild(e)}
+  e.textContent=t;e.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>e.hidden=true,2600)}
+
+/* ===== teacher console ===== */
+const PAINT=[];
+function bindSeg(id,key,num){const e=$(id);if(!e)return;
+  const paint=()=>e.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v)===String(CFG[key])));
+  e.querySelectorAll('button').forEach(b=>b.onclick=()=>{CFG[key]=num?+b.dataset.v:b.dataset.v;saveCfg();PAINT.forEach(f=>f())});PAINT.push(paint);paint()}
+bindSeg('#s-timer','timer');bindSeg('#s-speed','speed',1);
+$('#s-secs').value=CFG.secs;$('#s-secs').onchange=e=>{CFG.secs=+e.target.value;saveCfg()};
+$('#s-lives').value=CFG.lives;$('#s-lives').onchange=e=>{CFG.lives=+e.target.value;saveCfg();livesRender();whoRender()};
+$('#s-loss').checked=CFG.lifeLoss;$('#s-loss').onchange=e=>{CFG.lifeLoss=e.target.checked;saveCfg()};
+$('#s-bonus').checked=CFG.bonus;$('#s-bonus').onchange=e=>{CFG.bonus=e.target.checked;saveCfg()};
+$('#s-pin').value=CFG.pin||'';$('#s-pin').onchange=e=>{CFG.pin=e.target.value.trim();saveCfg();toast(CFG.pin?'Код учителя сохранён':'Код учителя убран')};
+function livesRender(){const e=$('#livesEd');if(!e)return;
+  e.innerHTML=!CFG.lives?'<p class="muted">Жизни выключены: ошибки не отнимают жизни.</p>':CFG.roster.length?CFG.roster.map((n,i)=>`<div class="lrow2"><b>${esc(n)}</b>${hearts(lifeOf(n))}<button class="btn ghost" data-l="${i}" data-d="-1" aria-label="Отнять жизнь">−</button><button class="btn ghost" data-l="${i}" data-d="1" aria-label="Добавить жизнь">+</button></div>`).join('')+`<button class="btn ghost" id="lvAll">Всем по ${CFG.lives}</button>`:'<p class="muted">Ученики появятся, когда введут имя.</p>';
+  e.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{const n=CFG.roster[+b.dataset.l];CFG.lv[n]=Math.max(0,lifeOf(n)+ +b.dataset.d);saveCfg();livesRender();whoRender();if(alive())$('#dead')?.remove()});
+  const all=$('#lvAll');if(all)all.onclick=()=>{CFG.roster.forEach(n=>CFG.lv[n]=CFG.lives);saveCfg();livesRender();whoRender();$('#dead')?.remove();toast('Жизни восстановлены')}}
+function loseLife(){if(!CFG.lives||!CFG.lifeLoss)return;names().forEach(n=>{if(CFG.roster.includes(n))CFG.lv[n]=Math.max(0,lifeOf(n)-1)});saveCfg();whoRender();
+  $('#whoBar .lifebox')?.classList.add('pop');if(!alive())outOfLives()}
+function good(){streak++;if(CFG.bonus&&CFG.lives&&streak%5===0&&names().some(n=>lifeOf(n)<CFG.lives)){names().forEach(n=>{if(CFG.roster.includes(n)&&lifeOf(n)<CFG.lives)CFG.lv[n]=lifeOf(n)+1});saveCfg();whoRender();toast('+1 жизнь за 5 верных ответов подряд!')}}
+function outOfLives(){clock.stop();SEC.forEach(s=>s.leave&&s.leave());if(A&&!A.done)put(false,false,'жизни закончились');
+  if($('#dead'))return;const m=el(`<div class="modal" id="dead"><div class="panel dead" role="dialog" aria-modal="true"><h2>💔 Жизни закончились</h2><p>${esc(who())}, ты отлично старался! Позови учителя: он может добавить жизни на пульте.</p>
+   <div class="row"><button class="btn big" id="deadT">Пульт учителя</button><button class="btn ghost" id="deadM">К карте турнира</button></div></div></div>`);
+  document.body.appendChild(m);$('#deadM').onclick=()=>{m.remove();show('map')};$('#deadT').onclick=()=>openTeacher(()=>m.remove())}
+$('#s-sound').checked=CFG.sound;$('#s-sound').onchange=e=>{CFG.sound=e.target.checked;saveCfg()};
+function togglePult(open){const t=$('#teacher');t.hidden=!open;$('#teacherBtn').setAttribute('aria-expanded',String(open));if(open){rosterRender();livesRender();t.scrollIntoView({block:'start'})}}
+// the teacher code, if set, is asked before the console opens
+function openTeacher(after){if(!CFG.pin){togglePult(true);after&&after();return}
+  const m=el(`<div class="modal" id="pinM"><form class="panel" role="dialog" aria-modal="true"><h3>Код учителя</h3><input type="text" inputmode="numeric" id="pinIn" autocomplete="off" aria-label="Код учителя"><p class="msg bad" id="pinErr" hidden>Неверный код.</p><div class="row"><button class="btn" type="submit">Открыть пульт</button><button class="btn ghost" type="button" id="pinNo">Отмена</button></div></form></div>`);
+  document.body.appendChild(m);$('#pinIn').focus();$('#pinNo').onclick=()=>m.remove();
+  m.querySelector('form').onsubmit=e=>{e.preventDefault();if($('#pinIn').value.trim()===CFG.pin){m.remove();togglePult(true);after&&after()}else $('#pinErr').hidden=false}}
+$('#teacherBtn').onclick=()=>{if($('#teacher').hidden)openTeacher();else togglePult(false)};
+
+/* ===== results journal ===== */
+// Saved to the artifact's shared store when the viewer offers one; otherwise to this browser.
+const ERR={'порядок':'Повторить порядок действий: сначала скобки, потом по порядку слева направо.',
+ 'вычисление':'Потренировать сложение и вычитание столбиком, проверять ответ обратным действием.',
+ 'обратное действие':'Повторить правила: как найти неизвестное слагаемое, уменьшаемое и вычитаемое.',
+ 'маска':'Тренироваться видеть в уравнении «большой кусок» со скобкой, который можно спрятать под маску.',
+ 'условие задачи':'Читать условие по частям: что известно и что нужно найти; рисовать схему.',
+ 'магический квадрат':'Начинать с линии, где известны все три числа, — это магическая сумма.',
+ 'рассуждение':'Решать олимпиадные задачи с рисунком или моделью и проверять ответ по условию.',
+ 'таблица умножения':'Повторить таблицу умножения — на ней держится деление.',
+ 'деление':'Проговаривать деление через умножение: 24 : 6 — какое число умножить на 6, чтобы получить 24.',
+ 'переход через разряд':'Тренировать «запоминаем в уме» при умножении столбиком.',
+ 'время':'Решать спокойнее; можно включить на пульте прямой таймер вместо обратного.'};
+const LOG={remote:[],local:[],db:null,dbWrite:true,who:'',sec:'',open:''};
+try{LOG.local=JSON.parse(localStorage.getItem('zt-log')||'[]')}catch(e){LOG.local=[]}
+const logRows=()=>{const ids=new Set(LOG.remote.map(r=>r.id));return [...LOG.remote,...LOG.local.filter(r=>!ids.has(r.id))].sort((a,b)=>(b.upd||b.at)-(a.upd||a.at))};
+const saveLocal=()=>{try{localStorage.setItem('zt-log',JSON.stringify(LOG.local.slice(0,800)))}catch(e){}};
+const sess=()=>({id:Date.now().toString(36)+Math.random().toString(36).slice(2,8),at:Date.now()});
+const CHAIN=new Map();
+function rec(sn,f){
+  if(!CFG.roster.length||names().some(n=>!CFG.roster.includes(n)))return;
+  const row={at:sn.at,upd:Date.now(),group:f.group,gname:f.gname,item:f.item,iname:f.iname,player:who(),done:!!f.done,ok:!!f.ok,
+    result:f.result||'',errs:f.errs||{},hints:f.hints||0,sec:Math.max(0,Math.round((Date.now()-sn.at)/1000))};
+  gsPush(sn.id,row,f.done);if(f.done&&!sn.told){sn.told=true;toast('Результат сохранён в журнал')}
+  if(LOG.db&&LOG.dbWrite){const prev=CHAIN.get(sn.id)||Promise.resolve();
+    CHAIN.set(sn.id,prev.then(()=>LOG.db.doc('results/'+sn.id).set(row)).catch(e=>{
+      if(e&&e.code==='quota_exceeded'){toast('Журнал переполнен: удалите старые записи');return}
+      if(e&&['invalid_argument','revoked','not_granted','capability_disabled'].includes(e.code))LOG.dbWrite=false;localPut(sn.id,row)}));return}
+  localPut(sn.id,row)}
+// Google Sheet: every journal row is also sent to the teacher's table (Apps Script web app).
+// Rows wait in a small queue in this browser, so answers given offline are sent later.
+const GS_DEFAULT='https://script.google.com/macros/s/AKfycbwAivtxG86vJ8mf-9r4yS0GXN-3wHHFqQ1h7U5GBD0IjXbrmPYmXu966K0P_juEqAjXqw/exec';
+const gsUrl=()=>(CFG.gs||GS_DEFAULT||'').trim();
+let GSQ={};try{GSQ=JSON.parse(localStorage.getItem('zt-gsq')||'{}')}catch(e){}
+const gsSave=()=>{try{localStorage.setItem('zt-gsq',JSON.stringify(GSQ))}catch(e){}};
+let gsT=null,gsBusy=false;
+function gsPush(id,row,now){if(!gsUrl())return;
+  GSQ[id]={id,at:row.at,upd:row.upd,player:row.player,gname:row.gname,iname:row.iname,status:stat(row)[1].slice(2),result:row.result,errs:errTxt(row.errs),hints:row.hints,sec:row.sec,src:document.title};
+  gsSave();clearTimeout(gsT);gsT=setTimeout(gsFlush,now?200:2500)}
+async function gsFlush(){const u=gsUrl(),rows=Object.values(GSQ);if(!u||!rows.length||gsBusy)return;gsBusy=true;
+  try{await fetch(u,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(rows)});
+    rows.forEach(r=>{if(GSQ[r.id]&&GSQ[r.id].upd===r.upd)delete GSQ[r.id]});gsSave()}
+  catch(e){clearTimeout(gsT);gsT=setTimeout(gsFlush,30000)}finally{gsBusy=false}}
+document.addEventListener('visibilitychange',()=>{const u=gsUrl(),rows=Object.values(GSQ);
+  if(document.visibilityState==='hidden'&&u&&rows.length&&navigator.sendBeacon&&navigator.sendBeacon(u,new Blob([JSON.stringify(rows)],{type:'text/plain;charset=utf-8'}))){GSQ={};gsSave()}});
+setTimeout(gsFlush,3000);
+$('#s-gs').value=CFG.gs||GS_DEFAULT;$('#s-gs').onchange=e=>{CFG.gs=e.target.value.trim();saveCfg();gsInfo()};
+const gsInfo=()=>$('#gsInfo').textContent=gsUrl()?'Результаты отправляются в таблицу.':'Таблица не подключена: результаты хранятся только в этом браузере.';gsInfo();
+$('#gsTest').onclick=async()=>{if(!gsUrl())return toast('Сначала вставьте адрес скрипта');GSQ['test-'+Date.now()]={id:'test-'+Date.now(),at:Date.now(),upd:Date.now(),player:'Учитель',gname:'Проверка связи',iname:'—',status:'проверка',result:'тестовая строка',errs:'',hints:0,sec:0,src:document.title};
+  await gsFlush();toast('Отправлено! Откройте таблицу: там должна появиться строка «Проверка связи».')};
+function localPut(id,row){const i=LOG.local.findIndex(r=>r.id===id),r={id,...row};if(i>=0)LOG.local[i]=r;else LOG.local.unshift(r);saveLocal();if(view==='log')lRender()}
+const stat=r=>r.ok?['ok','✓ выполнено']:r.done?['bad','✗ не получилось']:['open','⏸ не закончено'];
+const dt=t=>{const d=new Date(t);return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})};
+const errTxt=e=>Object.entries(e||{}).map(([k,n])=>k+(n>1?' ×'+n:'')).join(', ');
+const byWho=r=>!LOG.who||r.player.split(' и ').includes(LOG.who);
+const secOf=id=>SEC.find(s=>s.id===id);
+function lFiltered(){return logRows().filter(r=>byWho(r)&&(!LOG.sec||r.group===LOG.sec)&&(!LOG.open||!r.ok))}
+function lRender(){
+  const rows=logRows(),ps=[...new Set(rows.flatMap(r=>r.player.split(' и ')))];
+  $('#logWho').innerHTML=`<option value="">Все</option>`+ps.map(x=>`<option ${x===LOG.who?'selected':''}>${esc(x)}</option>`).join('');
+  $('#logSec').innerHTML=`<option value="">Все разделы</option>`+SEC.map(s=>`<option value="${s.id}" ${s.id===LOG.sec?'selected':''}>${esc(s.name)}</option>`).join('');
+  $('#logSt').value=LOG.open;
+  const mine=rows.filter(byWho);
+  $('#todoHead').textContent='Что осталось сделать'+(LOG.who?' — '+LOG.who:'');
+  $('#logTodo').innerHTML=SEC.map(s=>{const m=mine.filter(r=>r.group===s.id),ok=new Set(m.filter(r=>r.ok).map(r=>r.item));
+    const st=s.items.filter(t=>!ok.has(t.id)&&m.some(r=>r.item===t.id)),fr=s.items.filter(t=>!ok.has(t.id)&&!m.some(r=>r.item===t.id)),n=s.items.length-st.length-fr.length;
+    return `<div class="tcard ${!st.length&&!fr.length?'all':''}"><h4><span>${s.icon} ${esc(s.name)}</span><span>${n} из ${s.items.length}</span></h4>
+      ${!st.length&&!fr.length?'<p>Всё выполнено!</p>':''}${st.length?`<p><span class="lbl">Начато, не закончено</span><br>${st.map(t=>esc(t.name)).join(', ')}</p>`:''}
+      ${fr.length?`<p><span class="lbl">Ещё не начато</span><br>${fr.map(t=>esc(t.name)).join(', ')}</p>`:''}</div>`}).join('');
+  const f=lFiltered();
+  $('#logTable').innerHTML=f.length?`<table class="log"><thead><tr><th>Когда</th><th>Игрок</th><th>Раздел · задание</th><th>Статус</th><th>Результат</th><th>Ошибки</th><th>Подск.</th><th>Время</th></tr></thead><tbody>
+    ${f.map(r=>{const [c,t]=stat(r);return `<tr><td class="num">${dt(r.upd||r.at)}</td><td>${esc(r.player)}</td><td>${esc(r.gname||'')}<br><small class="muted">${esc(r.iname||'')}</small></td><td><span class="pill ${c}">${t}</span></td><td class="res">${esc(r.result)}</td><td>${esc(errTxt(r.errs))||'—'}</td><td class="num">${r.hints||0}</td><td class="num">${r.sec?fmt(r.sec):'—'}</td></tr>`}).join('')}</tbody></table>`
+    :`<div class="empty">Пока пусто. Начните любое задание — запись появится после первого ответа.</div>`;
+  $('#logWhere').textContent=(LOG.db&&LOG.dbWrite?'Журнал хранится вместе с игрой: его видно на любом устройстве, где открыта эта ссылка под вашим аккаунтом.':'Журнал хранится в этом браузере на этом устройстве. Чтобы сохранить его надолго, скачайте таблицу.')+' Каждое задание записывается после первого ответа, поэтому брошенные на середине тоже видны.';
+}
+$('#logBack').onclick=()=>show('map');$('#logWho').onchange=e=>{LOG.who=e.target.value;lRender()};$('#logSec').onchange=e=>{LOG.sec=e.target.value;lRender()};$('#logSt').onchange=e=>{LOG.open=e.target.value;lRender()};
+const rowArr=r=>[dt(r.upd||r.at),r.player,r.gname||'',r.iname||'',stat(r)[1].slice(2),r.result,errTxt(r.errs),r.hints||0,r.sec?fmt(r.sec):''];
+const HEAD=['Когда','Игрок','Раздел','Задание','Статус','Результат','Ошибки','Подсказки','Время'];
+async function saveFile(name,data){let dl=null;try{dl=await window.claude?.use?.('downloads')}catch(e){}
+  if(dl){try{await dl.save({filename:name,data});toast('Файл сохранён')}catch(e){if(e&&e.code!=='declined')toast('Не получилось скачать. Нажмите «Скопировать».')}return}
+  try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'text/plain'}));a.download=name;document.body.appendChild(a);a.click();a.remove()}catch(e){toast('Не получилось скачать. Нажмите «Скопировать».')}}
+$('#logDl').onclick=()=>{const q=v=>'"'+String(v).replace(/"/g,'""')+'"';saveFile('журнал-турнира.csv','﻿'+[HEAD,...lFiltered().map(rowArr)].map(l=>l.map(q).join(';')).join('\r\n'))};
+const copy=(t,ok)=>navigator.clipboard.writeText(t).then(()=>toast(ok),()=>toast('Не получилось скопировать'));
+$('#logCopy').onclick=()=>copy([HEAD,...lFiltered().map(rowArr)].map(l=>l.join('\t')).join('\n'),'Скопировано — можно вставить в Excel');
+function report(p){
+  const rows=logRows().filter(r=>r.player.split(' и ').includes(p));if(!rows.length)return `${p}: пока нет записей.`;
+  const ok=new Set(rows.filter(r=>r.ok).map(r=>r.group+'/'+r.item)),tot=SEC.reduce((a,s)=>a+s.items.length,0);
+  const errs={};let hints=0;rows.forEach(r=>{hints+=r.hints||0;Object.entries(r.errs||{}).forEach(([k,n])=>errs[k]=(errs[k]||0)+n)});
+  const top=Object.entries(errs).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  const per=SEC.map(s=>{const n=s.items.filter(t=>ok.has(s.id+'/'+t.id)).length;return {s,n}});
+  const good=per.filter(x=>x.n&&x.n/x.s.items.length>=.6).map(x=>x.s.name);
+  const open=rows.filter(r=>!r.done&&!ok.has(r.group+'/'+r.item));
+  return [`${p} — отчёт по «Звёздному турниру»`,`Выполнено заданий: ${ok.size} из ${tot}.`,
+    'По разделам: '+per.map(x=>`${x.s.name} ${x.n}/${x.s.items.length}`).join('; ')+'.',
+    good.length?'Хорошо получается: '+good.join(', ')+'.':'',
+    top.length?'Над чем поработать:\n'+top.map(([k,n])=>`• ${k} (${n}) — ${ERR[k]||''}`).join('\n'):'Ошибок почти нет — отлично!',
+    (b=>b.length?'Значки: '+b.join(', ')+'.':'')(SEC.flatMap(s=>(s.groups||[]).filter(g=>g.badge&&g.ids.every(id=>ok.has(s.id+'/'+id))).map(g=>g.icon+' «'+g.badge+'»'))),
+    `Подсказок взято: ${hints}.`,open.length?'Начато, но не закончено: '+[...new Set(open.map(r=>r.gname+' — '+r.iname))].slice(0,8).join('; ')+'.':''].filter(Boolean).join('\n')}
+$('#logRep').onclick=()=>{const ps=LOG.who?[LOG.who]:[...new Set(logRows().flatMap(r=>r.player.split(' и ')))];
+  const t=ps.map(report).join('\n\n')||'Пока нет записей.';
+  $('#logConfirm').innerHTML=`<div class="panel rep"><pre>${esc(t)}</pre><div class="row"><button class="btn" id="repCopy">Скопировать отчёт</button><button class="btn ghost" id="repClose">Закрыть</button></div></div>`;
+  $('#repCopy').onclick=()=>copy(t,'Отчёт скопирован — можно отправить родителям');$('#repClose').onclick=()=>$('#logConfirm').innerHTML=''};
+$('#logClear').onclick=()=>{$('#logConfirm').innerHTML=`<div class="msg bad">Удалить все записи журнала? Это нельзя отменить.
+  <div class="row" style="margin-top:8px"><button class="btn danger" id="logYes">Удалить</button><button class="btn ghost" id="logNo">Отмена</button></div></div>`;
+  $('#logNo').onclick=()=>$('#logConfirm').innerHTML='';
+  $('#logYes').onclick=async()=>{$('#logConfirm').innerHTML='';LOG.local=[];saveLocal();
+    if(LOG.db){for(const r of LOG.remote){try{await LOG.db.doc('results/'+r.id).delete()}catch(e){toast('Часть записей удалить не удалось');break}}}
+    lRender();toast('Журнал очищен')}};
+(async()=>{try{const db=await window.claude?.use?.('db');if(!db)return;LOG.db=db;
+  db.collection('results').orderBy('upd','desc').limit(800).onSnapshot(sn=>{LOG.remote=sn.docs.map(d=>({id:d.id,...d.data()}));if(view==='log')lRender();else if(view==='map')mapRender()},
+    ()=>{LOG.db=null;LOG.remote=[]})}catch(e){}})();
+
+/* ===== map, sections, attempts ===== */
+const SEC=[],reg=s=>SEC.push(s);
+let view='map',CS=null,CI=0,A=null;const clock=new Clock(null);
+const okSet=s=>{const w=who();return new Set(logRows().filter(r=>r.group===s.id&&r.ok&&r.player===w).map(r=>r.item))};
+const startSet=s=>{const w=who();return new Set(logRows().filter(r=>r.group===s.id&&!r.ok&&r.player===w).map(r=>r.item))};
+function show(v){view=v;$('#map').hidden=v!=='map';$('#sec').hidden=v==='map'||v==='log';$('#log').hidden=v!=='log';
+  if(v!=='sec'){clock.stop();SEC.forEach(s=>s.leave&&s.leave())}
+  if(v==='map')mapRender();if(v==='log')lRender();window.scrollTo(0,0)}
+function mapRender(){
+  const all=SEC.reduce((a,s)=>a+s.items.length,0);let got=0,cups=0;
+  $('#mapGrid').innerHTML=SEC.map((s,i)=>{const ok=okSet(s),st=startSet(s),n=s.items.filter(t=>ok.has(t.id)).length;got+=n;const full=n===s.items.length;if(full)cups++;
+    return `<button class="stage ${s.cls} ${full?'won':''}" data-s="${s.id}"><span class="no">Этап ${i+1}</span><span class="ico">${full?'🏆':s.icon}</span>
+      <b>${esc(s.name)}</b><small>${esc(s.blurb)}</small><span class="bar"><i style="width:${Math.round(n/s.items.length*100)}%"></i></span>
+      <span class="cnt">${n} из ${s.items.length}${st.size&&!full?' · начато':''}</span></button>`}).join('')+
+    `<button class="stage c-log" data-s="log"><span class="no">Для учителя</span><span class="ico">📒</span><b>Журнал</b><small>Результаты, ошибки, отчёт для родителей</small></button>`;
+  $('#mapSum').innerHTML=`Кубков: <b>${cups} из ${SEC.length}</b> · выполнено заданий: <b>${got} из ${all}</b>`;
+  $$('#mapGrid .stage').forEach(b=>b.onclick=()=>b.dataset.s==='log'?show('log'):openSec(b.dataset.s))}
+function openSec(id,i){CS=secOf(id);show('sec');
+  const ok=okSet(CS);if(i==null){i=CS.items.findIndex(t=>!ok.has(t.id));if(i<0)i=0}
+  $('#secHead').innerHTML=`<div class="row"><button class="btn ghost" id="toMap">← Карта турнира</button><span class="clock" id="clock" hidden></span></div>
+    <div class="whead"><div><h2>${CS.icon} ${esc(CS.name)}</h2><p>${esc(CS.about)}</p></div>${CS.intro?'<button class="btn ghost" id="howBtn">Как это работает?</button>':''}</div>`;
+  $('#toMap').onclick=()=>show('map');clock.el=$('#clock');
+  if(CS.intro)$('#howBtn').onclick=()=>howTo(CS);
+  openItem(i)}
+function tabs(){const ok=okSet(CS),st=startSet(CS);let list=CS.items.map((t,i)=>[t,i]);
+  // sections with groups show a row of blocks and only the tasks of the open block
+  if(CS.groups){const g=CS.groups.find(g=>g.ids.includes(CS.items[CI].id));
+    $('#secGroups').className=CS.groupHtml?'advwrap':'grpbar';$('#secGroups').innerHTML=CS.groupHtml?CS.groupHtml(ok,g):CS.groups.map(gr=>{const n=gr.ids.filter(id=>ok.has(id)).length;return `<button class="grpb ${gr===g?'on':''} ${n===gr.ids.length?'won':''}" data-g="${gr.ids.join(',')}"><span>${gr.icon}</span><b>${esc(gr.name)}</b><small>${n} из ${gr.ids.length}</small></button>`}).join('');
+    $$('#secGroups [data-g]').forEach(b=>{b.onclick=()=>{const ids=b.dataset.g.split(',');const id=ids.find(x=>!ok.has(x))||ids[0];openItem(CS.items.findIndex(t=>t.id===id))};b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();b.onclick()}}});
+    list=list.filter(([t])=>g.ids.includes(t.id)).map(([t,i],k)=>[{...t,name:`${k+1}. ${t.name}`},i])}else{$('#secGroups').className='grpbar';$('#secGroups').innerHTML=''}
+  $('#secTabs').className='ptabs '+(CS.tabCls||'');$('#secTabs').innerHTML=list.map(([t,i])=>`<button class="ptab ${ok.has(t.id)?'done':st.has(t.id)?'open':''}" aria-pressed="${i===CI}" data-i="${i}">${esc(t.name)}</button>`).join('');
+  $$('#secTabs .ptab').forEach(b=>b.onclick=()=>openItem(+b.dataset.i))}
+function openItem(i){SEC.forEach(s=>s.leave&&s.leave());if(!alive()){show('map');return outOfLives()}CI=i;const it=CS.items[i];
+  A={sec:CS,item:it,s:sess(),err:{},hints:0,done:false,touched:false};tabs();
+  const box=$('#stageBox');box.innerHTML='';
+  clock.start(()=>{if(CS.timeout)CS.timeout(A);else{mark('время',true);toast('Время вышло! Можно спокойно решать дальше.')}});
+  CS.open(it,box,A)}
+function put(done,ok,result){if(!A)return;A.touched=true;
+  rec(A.s,{group:A.sec.id,gname:A.sec.name,item:A.item.id,iname:A.item.name,done,ok,result,errs:A.err,hints:A.hints})}
+function mark(type,quiet){if(!A)return;A.err[type]=(A.err[type]||0)+1;put(false,false,A.prog||'в процессе');if(!quiet){sfx('bad');streak=0;loseLife()}}
+function useHint(){if(!A)return;A.hints++;put(false,false,A.prog||'в процессе')}
+function prog(t){if(!A)return;A.prog=t;put(false,false,t)}
+function finish(box,ok,result,text){if(!A||A.done)return;A.done=true;clock.stop();put(true,ok,result);sfx(ok?'win':'bad');tabs();CS.onDone&&CS.onDone(ok);
+  const last=CI>=CS.items.length-1;
+  const f=el(`<div class="fb"><div class="msg ${ok?'ok':'bad'}">${text||(ok?'Отлично, задание выполнено!':'Попробуй ещё раз.')}</div>
+    <div class="row">${ok?'':'<button class="btn ghost" data-a="re">Ещё раз</button>'}<button class="btn big" data-a="nx">${last?'К карте турнира':'Следующее задание →'}</button></div></div>`);
+  box.appendChild(f);f.querySelector('[data-a=nx]').onclick=()=>last?show('map'):openItem(CI+1);
+  const r=f.querySelector('[data-a=re]');if(r)r.onclick=()=>openItem(CI);setTimeout(()=>f.querySelector('[data-a=nx]')?.focus({preventScroll:true}),400)}
+function howTo(s){const m=el(`<div class="modal"><div class="panel how" role="dialog" aria-modal="true"><h3>${s.icon} Как это работает</h3>${s.intro}<button class="btn big" id="howOk">Понятно!</button></div></div>`);
+  document.body.appendChild(m);$('#howOk').onclick=()=>m.remove();$('#howOk').focus()}
+
+/* ===== shared widgets ===== */
+function confetti(n){const c=el('<canvas class="confetti" aria-hidden="true"></canvas>');document.body.appendChild(c);const W=c.width=innerWidth,H=c.height=innerHeight,x=c.getContext('2d');
+  const P=Array.from({length:n},()=>({x:W/2+(Math.random()-.5)*W*.3,y:H*.35,vx:(Math.random()-.5)*14,vy:-Math.random()*13-4,c:['#e0332d','#ffc629','#1d9a52','#2a6df4','#b0369a'][Math.random()*5|0],r:Math.random()*6.28}));let t=0;
+  const f=()=>{x.clearRect(0,0,W,H);P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.45;p.r+=.2;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-5,-3,10,6);x.restore()});if(++t<90)requestAnimationFrame(f);else c.remove()};f()}
+// numeric answer box: calls ok() when right, bad(v) when wrong
+function askNum(parent,{label,ans,unit,ok,bad,big}){
+  const w=el(`<div class="ask ${big?'big':''}"><label>${label}</label><span class="inp"><input type="text" inputmode="numeric" autocomplete="off" aria-label="Ответ"> ${unit?`<span>${unit}</span>`:''}</span><button class="btn">Проверить</button></div>`);
+  parent.appendChild(w);const inp=w.querySelector('input');
+  const go=()=>{const v=inp.value.trim().replace(/\s/g,'');if(!v){inp.focus();return}
+    if(String(v).toLowerCase()===String(ans).toLowerCase()){inp.disabled=true;w.querySelector('button').remove();w.classList.add('right');sfx('ok');good();ok&&ok()}
+    else{w.classList.remove('shake');void w.offsetWidth;w.classList.add('shake');bad&&bad(v);inp.select()}};
+  w.querySelector('button').onclick=go;inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();go()}};setTimeout(()=>inp.focus({preventScroll:true}),30);return w}
+function choose(parent,{label,opts,ok,bad}){
+  const w=el(`<div class="choose"><div class="lbl2">${label}</div><div class="row"></div></div>`);parent.appendChild(w);
+  shuffle(opts.map((o,i)=>[o,i])).forEach(([o,i])=>{const b=el(`<button class="chip">${esc(o)}</button>`);w.querySelector('.row').appendChild(b);
+    b.onclick=()=>{if(i===0){w.querySelectorAll('button').forEach(x=>x.disabled=true);b.classList.add('right');sfx('ok');good();ok&&ok()}else{b.classList.add('wrong');b.disabled=true;bad&&bad(o)}}});return w}
+function hintLadder(parent,hints){
+  const w=el(`<div class="hints"><button class="btn ghost">💡 Подсказка</button><ol></ol></div>`);parent.appendChild(w);let k=0;
+  const b=w.querySelector('button');b.onclick=()=>{if(k>=hints.length)return;w.querySelector('ol').appendChild(el(`<li>${hints[k]}</li>`));k++;useHint();
+    b.textContent=k<hints.length?`💡 Ещё подсказка (${k}/${hints.length})`:'Подсказок больше нет';if(k>=hints.length)b.disabled=true};return w}
+const card=(parent,h)=>{const c=el(`<div class="panel tcard2">${h}</div>`);parent.appendChild(c);return c};
+
+/* ===== who is playing ===== */
+function whoRender(){$('#whoBar').innerHTML=`<span class="lab">Играет:</span><span class="kid" aria-pressed="true">${names().map(esc).join(' и ')}</span>${CFG.lives?names().filter(n=>CFG.roster.includes(n)).map(n=>`<span class="lifebox" title="Жизни ${esc(n)}">${names().length>1?esc(n)+' ':''}${hearts(lifeOf(n))}</span>`).join(''):''}<button class="btn ghost" id="whoChange">Сменить игрока</button>`;$('#whoChange').onclick=hello;livesRender()}
+function hello(){
+  document.querySelector('#hello')?.remove();
+  const m=el(`<div class="modal" id="hello"><form class="panel hellobox" role="dialog" aria-modal="true" aria-labelledby="helloT">
+    <h2 id="helloT">Привет, герой! Как тебя зовут?</h2>
+    <div class="field"><label for="hello1" class="qtag">Твоё имя</label><input type="text" id="hello1" maxlength="16" autocomplete="off" placeholder="Напиши имя"></div>
+    <label class="check"><input type="checkbox" id="helloDuo" ${CFG.sel.length===2?'checked':''}> Играем вдвоём</label>
+    <div class="field" id="hello2w" ${CFG.sel.length===2?'':'hidden'}><label for="hello2" class="qtag">Имя второго игрока</label><input type="text" id="hello2" maxlength="16" autocomplete="off" placeholder="Напиши имя"></div>
+    ${CFG.roster.length?`<div><div class="qtag">Уже играли</div><div class="row">${CFG.roster.map(n=>`<button type="button" class="kid" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div></div>`:''}
+    <p class="msg bad" id="helloErr" hidden></p><button class="btn big" type="submit">Начать игру</button></form></div>`);
+  document.body.appendChild(m);const i1=$('#hello1'),i2=$('#hello2'),duo=$('#helloDuo');
+  duo.onchange=()=>{$('#hello2w').hidden=!duo.checked};
+  $$('#hello .kid').forEach(b=>b.onclick=()=>{const t=(!i1.value.trim()||!duo.checked)?i1:i2;t.value=b.dataset.n});
+  m.querySelector('form').onsubmit=e=>{e.preventDefault();
+    const norm=v=>{v=v.trim().replace(/\s+/g,' ');if(!v)return '';v=v[0].toUpperCase()+v.slice(1);return CFG.roster.find(x=>x.toLowerCase()===v.toLowerCase())||v};
+    const a=norm(i1.value),b=duo.checked?norm(i2.value):'',err=$('#helloErr');
+    const say=(t,f)=>{err.textContent=t;err.hidden=false;f.focus()};
+    if(!a)return say('Напиши своё имя.',i1);if(duo.checked&&!b)return say('Напиши имя второго игрока.',i2);if(b&&a===b)return say('Имена должны быть разными.',i2);
+    const sel=b?[a,b]:[a];sel.forEach(n=>{if(!CFG.roster.includes(n))CFG.roster.push(n)});
+    CFG.sel=sel;saveCfg();m.remove();streak=0;whoRender();LOG.who=sel.length===1?sel[0]:'';show('map');toast('Играет: '+who());if(!alive())outOfLives()};
+  setTimeout(()=>i1.focus(),50)}
+function rosterRender(){
+  $('#rosterEd').innerHTML=CFG.roster.map((n,i)=>`<div class="rrow"><input type="text" maxlength="16" value="${esc(n)}" data-i="${i}" id="kid-${i}" aria-label="Имя ученика ${i+1}"><button class="btn ghost" data-del="${i}" aria-label="Удалить ${esc(n)}">✕</button></div>`).join('')||'<p class="muted">Ученики появятся здесь, когда введут имя.</p>';
+  $$('#rosterEd input').forEach(inp=>inp.onchange=()=>{const i=+inp.dataset.i,old=CFG.roster[i],nw=inp.value.trim().replace(/\s+/g,' ');
+    if(!nw||CFG.roster.includes(nw)&&nw!==old){inp.value=old;return}CFG.roster[i]=nw;CFG.sel=CFG.sel.map(x=>x===old?nw:x);saveCfg();whoRender()});
+  $$('#rosterEd [data-del]').forEach(b=>b.onclick=()=>{const n=CFG.roster[+b.dataset.del];CFG.roster.splice(+b.dataset.del,1);CFG.sel=CFG.sel.filter(x=>x!==n);if(!CFG.sel.length)CFG.sel=['Игрок'];saveCfg();rosterRender();whoRender()})}
+
+/* ===== MAGIC SQUARES ===== */
+// s: solution row by row; g: indexes of given cells
+const MQ=[
+ {id:'q1',name:'Квадрат 1',t:'Заполни пропуски так, чтобы получился магический квадрат.',s:[17,7,9,3,11,19,13,15,5],g:[0,3,4,8]},
+ {id:'q2',name:'Квадрат 2',t:'Заполни пропуски так, чтобы получился магический квадрат.',s:[8,18,4,6,10,14,16,2,12],g:[0,3,4,8]},
+ {id:'q3',name:'Яйца динозавров',t:'Динозавриха пронумеровала свои яйца. Впиши пропущенные номера: в каждой строке, каждом столбце и на обеих диагоналях сумма номеров должна быть одинаковой.',s:[23,12,25,22,20,18,15,28,17],g:[2,3,4,6]},
+ {id:'q4',name:'Номера футболистов',t:'Тренер расставил футболистов квадратом 3 на 3. Допиши номера на футболках так, чтобы суммы во всех строках, столбцах и диагоналях совпали.',s:[230,100,270,240,200,160,130,300,170],g:[4,6,7,8]},
+ {id:'q5',name:'Топливо ракеты',t:'В девяти баках ракеты — топливо (в литрах). Сумма литров в любой строке, любом столбце и на диагоналях одна и та же. Сколько литров в пустых баках?',s:[1200,500,1300,1100,1000,900,700,1500,800],g:[2,4,6,7]},
+ {id:'q6',name:'Щиты героев',t:'На щитах героев числа. Это магический квадрат, но часть щитов перевернули. Впиши недостающие числа.',s:[19,8,18,14,15,16,12,22,11],g:[0,1,2,3]},
+ {id:'q7',name:'Кристаллы',t:'Кристаллы космической станции уложены в магический квадрат. Найди числа на пустых местах.',s:[60,15,75,65,50,35,25,85,40],g:[1,4,7,8]},
+ {id:'q8',name:'Следы динозавров',t:'В клетках записано, сколько следов оставил динозавр. Заполни пропуски так, чтобы квадрат стал магическим.',s:[45,23,52,47,40,33,28,57,35],g:[2,3,5,8]}];
+const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+reg({id:'magic',icon:'🔮',name:'Магический квадрат',cls:'c-magic',blurb:'Суммы во всех линиях равны',items:MQ,
+ about:'В каждой строке, каждом столбце и на двух диагоналях сумма чисел одинаковая. Она называется магической суммой.',
+ intro:`<p>Магический квадрат — это таблица 3 на 3, где сумма в любой строке, любом столбце и на обеих диагоналях одинаковая.</p>
+  <p><b>Секрет:</b> найди линию, где известны все три числа. Их сумма и есть магическая сумма. Потом ищи линии, где не хватает только одного числа: магическая сумма минус два известных числа.</p>
+  <p>Пример: в квадрате 2 7 6 / 9 5 1 / 4 3 8 диагональ 8 + 5 + 2 = 15. Если в строке «9, 5, ?» не хватает числа, то это 15 − 9 − 5 = 1.</p>`,
+ open(it,box){
+  const c=card(box,`<p class="task">${esc(it.t)}</p><div class="msq" role="grid"></div><div class="row act"><button class="btn big">Проверить</button></div>`);
+  const grid=c.querySelector('.msq'),sum=it.s[0]+it.s[4]+it.s[8];
+  it.s.forEach((v,i)=>grid.appendChild(it.g.includes(i)?el(`<div class="mc given">${v}</div>`):el(`<input class="mc" inputmode="numeric" maxlength="4" aria-label="Клетка ${i+1}" data-i="${i}">`)));
+  const ins=[...grid.querySelectorAll('input')];
+  // next cell that can be found from one full line
+  const nextCell=()=>{const known=i=>it.g.includes(i)||(grid.querySelector(`[data-i="${i}"]`)?.value==String(it.s[i]));
+    for(const L of LINES){const miss=L.filter(i=>!known(i));if(miss.length===1)return miss[0]}return ins.find(x=>x.value!=String(it.s[+x.dataset.i]))?.dataset.i};
+  hintLadder(c,['Найди линию, где известны все три числа. Сложи их — это магическая сумма.',
+   `Магическая сумма равна ${sum}. Теперь ищи линию, где не хватает только одного числа.`,
+   'Последняя подсказка: открою одну клетку.']).querySelector('button').addEventListener('click',function(){if(this.disabled){const i=+nextCell();const x=grid.querySelector(`[data-i="${i}"]`);if(x){x.value=it.s[i];x.classList.add('shown')}}});
+  c.querySelector('.act .btn').onclick=()=>{
+    const filled=ins.every(x=>x.value.trim());let bad=0;ins.forEach(x=>{const ok=x.value.trim()===String(it.s[+x.dataset.i]);x.classList.toggle('wrong',!!x.value.trim()&&!ok);x.classList.toggle('right',ok);if(x.value.trim()&&!ok)bad++});
+    const got=ins.filter(x=>x.classList.contains('right')).length;prog(`заполнено верно ${got} из ${ins.length}`);
+    if(bad){mark('магический квадрат');toast('Красные клетки — неверно. Проверь суммы.');return}
+    if(!filled){toast('Заполни все пустые клетки.');return}
+    c.querySelector('.act').remove();finish(box,true,`магическая сумма ${sum}`,`Верно! Магическая сумма — ${sum}.`)};
+ }});
+
+/* ===== ORDER OF OPERATIONS ===== */
+const CQ=[
+ {id:'c1',name:'Пример 1',t:'Вычисли:',e:'801 − 376 − ( 430 − 291 ) + 268'},
+ {id:'c2',name:'Пример 2',t:'Вычисли:',e:'803 − 387 − ( 420 − 282 ) + 259'},
+ {id:'c3',name:'Табло стадиона',t:'На табло стадиона загорелся пример. Реши его, и узнаешь, сколько зрителей пришло на матч:',e:'1000 − ( 275 + 348 ) + 196 − 87'},
+ {id:'c4',name:'Код сейфа',t:'Чтобы открыть сейф супергероя, нужно вычислить код:',e:'632 + 189 − ( 906 − 518 ) − 75'},
+ {id:'c5',name:'Пульт ракеты',t:'Ракета взлетит, когда ты введёшь ответ на пульте:',e:'2045 − 1386 + ( 514 − 279 ) − 400'},
+ {id:'c6',name:'Билеты в динопарк',t:'Посчитай, сколько билетов в динопарк осталось в кассе:',e:'905 − ( 348 + 167 ) − 196 + 73'},
+ {id:'c7',name:'Звёздный счёт',t:'Астроном записал пример про звёзды. Вычисли:',e:'3000 − 1754 + 89 − ( 624 − 459 )'},
+ {id:'c8',name:'Очки героя',t:'Сколько очков набрал герой в игре? Вычисли:',e:'478 + ( 365 − 189 ) + 1247 − 999'}];
+// returns steps [{op index, a, op, b, v}] in the right order
+function calcSteps(e){const T=e.split(' ');const ops=[];let depth=0;T.forEach((t,i)=>{if(t==='(')depth++;else if(t===')')depth--;else if(t==='+'||t==='−')ops.push({i,inB:depth>0})});
+  const ap=(a,o,b)=>o==='+'?a+b:a-b;const steps=[];
+  const bOps=ops.filter(o=>o.inB);let bv=null;
+  if(bOps.length){const s=T.indexOf('('),f=T.indexOf(')');let v=+T[s+1];for(let k=s+2;k<f;k+=2){const nv=ap(v,T[k],+T[k+1]);steps.push({i:k,a:v,op:T[k],b:+T[k+1],v:nv});v=nv}bv=v}
+  // outer: replace bracket by its value and fold left
+  const out=[];for(let k=0;k<T.length;k++){if(T[k]==='('){out.push({v:bv});k=T.indexOf(')')}else out.push({t:T[k],i:k})}
+  let v=out[0].v??+out[0].t;for(let k=1;k<out.length;k+=2){const b=out[k+1].v??+out[k+1].t,nv=ap(v,out[k].t,b);steps.push({i:out[k].i,a:v,op:out[k].t,b,v:nv});v=nv}
+  return steps}
+reg({id:'calc',icon:'🧮',name:'Порядок действий',cls:'c-calc',blurb:'Скобки, потом слева направо',items:CQ,
+ about:'Сначала расставь порядок действий, потом посчитай каждое действие. Большие числа удобно считать столбиком на листочке.',
+ intro:`<p><b>Правило:</b> сначала выполняем действие в скобках. Потом все остальные действия по порядку слева направо.</p>
+  <p>Пример: 50 − 20 − (15 − 5) + 3. Первое — в скобках: 15 − 5 = 10. Второе: 50 − 20 = 30. Третье: 30 − 10 = 20. Четвёртое: 20 + 3 = 23.</p>
+  <p>В игре сначала нажми на знаки действий в том порядке, в котором будешь считать, а потом посчитай.</p>`,
+ open(it,box){
+  const T=it.e.split(' '),S=calcSteps(it.e);let pick=[],bad=0;
+  const c=card(box,`<p class="task">${esc(it.t)}</p><p class="lbl2">1. Нажми на знаки в том порядке, в котором будешь выполнять действия.</p>
+   <div class="expr">${T.map((t,i)=>t==='+'||t==='−'?`<button class="op" data-i="${i}">${t}<span></span></button>`:`<span class="tk">${t}</span>`).join('')}<span class="tk">=</span><span class="tk res">?</span></div><div class="steps"></div>`);
+  const stepsBox=c.querySelector('.steps');
+  c.querySelectorAll('.op').forEach(b=>b.onclick=()=>{if(b.classList.contains('on'))return;pick.push(+b.dataset.i);b.classList.add('on');b.querySelector('span').textContent=pick.length;
+   if(pick.length===S.length){const right=S.every((s,k)=>s.i===pick[k]);
+    c.querySelectorAll('.op').forEach(o=>{o.disabled=true;const k=S.findIndex(s=>s.i===+o.dataset.i);o.querySelector('span').textContent=k+1;o.classList.toggle('wrong',!right&&pick.indexOf(+o.dataset.i)!==k)});
+    if(right){sfx('ok');prog('порядок действий верный')}else{mark('порядок');stepsBox.appendChild(el('<p class="msg bad">Порядок другой: сначала действие в скобках, потом слева направо. Цифры исправлены — теперь посчитай.</p>'))}
+    step(0)}});
+  const step=k=>{if(k>=S.length){c.querySelector('.res').textContent=S.at(-1).v;finish(box,true,`= ${S.at(-1).v}`,`Верно! Ответ: ${S.at(-1).v}.`);return}
+   const s=S[k];let miss=0;
+   askNum(stepsBox,{label:`${k+1}) ${s.a} ${s.op} ${s.b} =`,ans:s.v,ok:()=>{prog(`посчитано действий: ${k+1} из ${S.length}`);step(k+1)},
+    bad:()=>{mark('вычисление');if(++miss===2)stepsBox.appendChild(el(`<p class="msg info">Посчитай столбиком: единицы под единицами, десятки под десятками. ${s.op==='−'?'Если не хватает — займи десяток у соседа.':'Не забудь перенос в следующий разряд.'}</p>`))}})};
+ }});
+
+/* ===== MASK 2.0: tidy the bracket, choose the mask, peel the layers ===== */
+// steps: c = calculate inside, p = pick what to hide (first option right), i = inverse action (first option right)
+const R_ADD='Неизвестное слагаемое: из суммы вычитаем известное слагаемое.',R_SUBTR='Неизвестное вычитаемое: из уменьшаемого вычитаем разность.',R_MIN='Неизвестное уменьшаемое: к разности прибавляем вычитаемое.';
+const EQ=[
+ {id:'e1',name:'Уравнение 1',eq:'(53 − 7 − y) + 15 = 60',v:'y',st:[{k:'c',p:'53 − 7',a:46,eq:'(46 − y) + 15 = 60'},{k:'p',o:['(46 − y)','15','60'],eq:'М + 15 = 60'},
+  {k:'i',p:'М + 15 = 60',o:['60 − 15','60 + 15','15 − 60'],a:45,r:R_ADD},{k:'i',p:'46 − y = 45',o:['46 − 45','46 + 45','45 − 46'],a:1,r:R_SUBTR}],ch:'(53 − 7 − 1) + 15 = 45 + 15 = 60'},
+ {id:'e2',name:'Уравнение 2',eq:'(54 − 8 − y) + 28 = 70',v:'y',st:[{k:'c',p:'54 − 8',a:46,eq:'(46 − y) + 28 = 70'},{k:'p',o:['(46 − y)','28','70'],eq:'М + 28 = 70'},
+  {k:'i',p:'М + 28 = 70',o:['70 − 28','70 + 28','28 − 70'],a:42,r:R_ADD},{k:'i',p:'46 − y = 42',o:['46 − 42','46 + 42','42 − 46'],a:4,r:R_SUBTR}],ch:'(54 − 8 − 4) + 28 = 42 + 28 = 70'},
+ {id:'e3',name:'Шифр стадиона',eq:'(38 + 24 − k) − 17 = 29',v:'k',st:[{k:'c',p:'38 + 24',a:62,eq:'(62 − k) − 17 = 29'},{k:'p',o:['(62 − k)','17','29'],eq:'М − 17 = 29'},
+  {k:'i',p:'М − 17 = 29',o:['29 + 17','29 − 17','17 − 29'],a:46,r:R_MIN},{k:'i',p:'62 − k = 46',o:['62 − 46','62 + 46','46 − 62'],a:16,r:R_SUBTR}],ch:'(38 + 24 − 16) − 17 = 46 − 17 = 29'},
+ {id:'e4',name:'Код динопарка',eq:'90 − (12 + 18 + x) = 41',v:'x',st:[{k:'c',p:'12 + 18',a:30,eq:'90 − (30 + x) = 41'},{k:'p',o:['(30 + x)','90','41'],eq:'90 − М = 41'},
+  {k:'i',p:'90 − М = 41',o:['90 − 41','90 + 41','41 − 90'],a:49,r:R_SUBTR},{k:'i',p:'30 + x = 49',o:['49 − 30','49 + 30','30 − 49'],a:19,r:R_ADD}],ch:'90 − (12 + 18 + 19) = 90 − 49 = 41'},
+ {id:'e5',name:'Ракетный код',eq:'(y − 240) − 125 = 35 + 15',v:'y',st:[{k:'c',p:'35 + 15',a:50,eq:'(y − 240) − 125 = 50'},{k:'p',o:['(y − 240)','125','50'],eq:'М − 125 = 50'},
+  {k:'i',p:'М − 125 = 50',o:['50 + 125','50 − 125','125 − 50'],a:175,r:R_MIN},{k:'i',p:'y − 240 = 175',o:['175 + 240','175 − 240','240 − 175'],a:415,r:R_MIN}],ch:'(415 − 240) − 125 = 175 − 125 = 50 = 35 + 15'},
+ {id:'e6',name:'Тайна героя',eq:'75 − (a − 45) = 9 + 9',v:'a',st:[{k:'c',p:'9 + 9',a:18,eq:'75 − (a − 45) = 18'},{k:'p',o:['(a − 45)','75','18'],eq:'75 − М = 18'},
+  {k:'i',p:'75 − М = 18',o:['75 − 18','75 + 18','18 − 75'],a:57,r:R_SUBTR},{k:'i',p:'a − 45 = 57',o:['57 + 45','57 − 45','45 − 57'],a:102,r:R_MIN}],ch:'75 − (102 − 45) = 75 − 57 = 18 = 9 + 9'},
+ {id:'e7',name:'Звёздный замок',eq:'700 − (900 − 350 − m) = 320',v:'m',st:[{k:'c',p:'900 − 350',a:550,eq:'700 − (550 − m) = 320'},{k:'p',o:['(550 − m)','700','320'],eq:'700 − М = 320'},
+  {k:'i',p:'700 − М = 320',o:['700 − 320','700 + 320','320 − 700'],a:380,r:R_SUBTR},{k:'i',p:'550 − m = 380',o:['550 − 380','550 + 380','380 − 550'],a:170,r:R_SUBTR}],ch:'700 − (900 − 350 − 170) = 700 − 380 = 320'},
+ {id:'e8',name:'Сила удара',eq:'(17 + 9 + x) − (6 · 4) = 30',v:'x',st:[{k:'c',p:'17 + 9',a:26,eq:'(26 + x) − (6 · 4) = 30'},{k:'c',p:'6 · 4',a:24,eq:'(26 + x) − 24 = 30'},{k:'p',o:['(26 + x)','24','30'],eq:'М − 24 = 30'},
+  {k:'i',p:'М − 24 = 30',o:['30 + 24','30 − 24','24 − 30'],a:54,r:R_MIN},{k:'i',p:'26 + x = 54',o:['54 − 26','54 + 26','26 − 54'],a:28,r:R_ADD}],ch:'(17 + 9 + 28) − (6 · 4) = 54 − 24 = 30'}];
+const MK=s=>esc(s).replace(/М/g,'<span class="mk">М</span>');
+reg({id:'mask',icon:'🎭',name:'Маска 2.0',cls:'c-mask',blurb:'Уравнения со скобками',items:EQ,
+ about:'Три приёма героя: убери лишнее в скобке, спрячь скобку под маску, сними слои по одному обратным действием.',
+ intro:`<svg viewBox="0 0 320 120" aria-hidden="true"><path d="M160 20v80M60 40h200" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M40 40l-20 40h80l-20-40M280 40l-20 40h-40l20-40" fill="none" stroke="currentColor" stroke-width="4"/><rect x="25" y="80" width="70" height="14" rx="6" fill="var(--mask)"/><rect x="225" y="80" width="70" height="14" rx="6" fill="var(--gold)"/><text x="60" y="72" text-anchor="middle" font-size="16" font-weight="900" fill="currentColor">М + 15</text><text x="260" y="72" text-anchor="middle" font-size="16" font-weight="900" fill="currentColor">60</text></svg>
+  <p><b>1. Уборка.</b> Если два числа стоят рядом и их можно посчитать, сначала посчитай: (20 − 4 − y) → (16 − y).</p>
+  <p><b>2. Маска.</b> Спрячь всю скобку под маску <b>М</b>. Например, (16 − y) + 10 = 30 станет М + 10 = 30.</p>
+  <p><b>3. Снимаем слои.</b> Уравнение как весы: обе чаши равны. Чтобы найти М, выбери обратное действие: было «+ 10» — значит, 30 − 10. Потом сними маску и найди букву так же.</p>`,
+ open(it,box){
+  const c=card(box,`<p class="lbl2">Реши уравнение:</p><div class="eqbig">${esc(it.eq)}</div><div class="steps"></div>`);
+  const S=c.querySelector('.steps'),eqEl=c.querySelector('.eqbig');let k=0;
+  const next=()=>{if(k>=it.st.length){S.appendChild(el(`<p class="msg ok">Проверка: ${esc(it.ch)} ✓</p>`));finish(box,true,`${it.v} = ${it.st.at(-1).a}`,`Уравнение решено: ${it.v} = ${it.st.at(-1).a}.`);return}
+   const s=it.st[k++];if(k>1)prog(`шаг ${k} из ${it.st.length}`);
+   if(s.k==='c')askNum(S,{label:`Сначала посчитай то, что можно: ${esc(s.p)} =`,ans:s.a,ok:()=>{eqEl.innerHTML=MK(s.eq);next()},bad:()=>mark('вычисление')});
+   else if(s.k==='p')choose(S,{label:'Что спрячем под маску М?',opts:s.o,ok:()=>{eqEl.innerHTML=MK(s.eq);next()},bad:()=>{mark('маска');toast('Под маску прячем всю скобку с буквой.')}});
+   else{const w=el('<div class="layer"></div>');S.appendChild(w);w.appendChild(el(`<div class="stepline">${MK(s.p)}</div>`));
+    const unk=/М/.test(s.p)?'М':it.v;
+    choose(w,{label:`Как найти ${unk}?`,opts:s.o,ok:()=>{w.appendChild(el(`<p class="muted">${esc(s.r)}</p>`));askNum(w,{label:`${unk} = ${esc(s.o[0])} =`,ans:s.a,ok:()=>{if(unk==='М')eqEl.innerHTML=esc(it.st[k]?.p||'');next()},bad:()=>mark('вычисление')})},
+     bad:()=>{mark('обратное действие');toast(s.r)}})}};
+  next()}});
+
+/* ===== ROCKET INTERCEPT: word problems step by step ===== */
+const RP=[
+ {id:'r1',name:'Ворона',text:'Ворона нашла колечек на 7 штук меньше, чем заколок, а скрепок в 2 раза больше, чем заколок. В бюро «Находок» Ворона отнесла 8 колечек, 9 заколок и 14 скрепок. Сколько предметов осталось у Вороны, если заколок она нашла 15 штук?',
+  st:[['Сколько колечек нашла Ворона?',8,[22,7,9],'15 − 7 = 8'],['Сколько скрепок?',30,[17,13,32],'в 2 раза больше: 15 · 2 = 30'],['Сколько всего предметов нашла?',53,[45,63,38],'15 + 8 + 30 = 53'],['Сколько отнесла в бюро?',31,[29,41,22],'8 + 9 + 14 = 31'],['Сколько осталось?',22,[32,84,12],'53 − 31 = 22']]},
+ {id:'r2',name:'Фрекен Бок',text:'Фрекен Бок испекла плюшек на 12 штук меньше, чем ватрушек, а печенья в 2 раза больше, чем плюшек. Карлсон съел 5 плюшек, 9 ватрушек и 8 штук печенья. Сколько штук сладостей осталось, если плюшек было 14 штук?',
+  st:[['Сколько ватрушек?',26,[2,24,16],'плюшек меньше, значит ватрушек больше: 14 + 12 = 26'],['Сколько печенья?',28,[16,12,7],'14 · 2 = 28'],['Сколько всего сладостей?',68,[58,54,78],'14 + 26 + 28 = 68'],['Сколько съел Карлсон?',22,[21,32,12],'5 + 9 + 8 = 22'],['Сколько осталось?',46,[36,90,56],'68 − 22 = 46']]},
+ {id:'r3',name:'Варенье',text:'Малыш и Карлсон 2 часа уплетали варенье. Сначала друзья ели брусничное варенье, затем полчаса угощались клубничным вареньем, что на 25 мин. меньше, чем они ели земляничное варенье. Сколько минут друзья ели брусничное варенье?',
+  st:[['Сколько минут в 2 часах?',120,[200,100,60],'1 ч = 60 мин; 60 + 60 = 120'],['Сколько минут ели земляничное?',55,[5,25,65],'полчаса = 30 мин; 30 + 25 = 55'],['Сколько минут ели клубничное и земляничное вместе?',85,[75,95,30],'30 + 55 = 85'],['Сколько минут ели брусничное?',35,[45,65,25],'120 − 85 = 35']]},
+ {id:'r4',name:'Попугай Кеша',text:'Попугай Кеша 2 часа болтал по телефону с друзьями. Сначала позвонил Вороне, затем полчаса беседовал с Котом, что на 15 мин. меньше, чем с Палканом. Сколько минут Кеша болтал с Вороной?',
+  st:[['Сколько минут в 2 часах?',120,[200,100,60],'60 + 60 = 120'],['Сколько минут Кеша говорил с Палканом?',45,[15,35,55],'30 + 15 = 45'],['Сколько минут с Котом и Палканом вместе?',75,[65,85,105],'30 + 45 = 75'],['Сколько минут Кеша болтал с Вороной?',45,[55,35,195],'120 − 75 = 45']]},
+ {id:'r5',name:'Вещи тренера',text:'У тренера 9 конусов. Мячей на 6 больше, чем конусов, а фишек в 3 раза больше, чем конусов. На тренировке ребята потеряли 2 мяча, 1 конус и 7 фишек. Сколько всего вещей осталось у тренера?',
+  st:[['Сколько мячей?',15,[3,54,16],'9 + 6 = 15'],['Сколько фишек?',27,[12,3,36],'9 · 3 = 27'],['Сколько вещей было всего?',51,[42,61,24],'9 + 15 + 27 = 51'],['Сколько вещей потеряли?',10,[9,20,7],'2 + 1 + 7 = 10'],['Сколько вещей осталось?',41,[51,61,31],'51 − 10 = 41']]},
+ {id:'r6',name:'Раскопки',text:'Палеонтолог нашёл 15 зубов динозавра — это на 8 больше, чем когтей. Позвонков он нашёл в 4 раза больше, чем когтей. Потом он отдал в музей 6 зубов, 3 когтя и 20 позвонков. Сколько находок у него осталось?',
+  st:[['Сколько когтей?',7,[23,8,17],'зубов на 8 больше, значит когтей меньше: 15 − 8 = 7'],['Сколько позвонков?',28,[11,60,24],'7 · 4 = 28'],['Сколько всего находок?',50,[43,40,60],'15 + 7 + 28 = 50'],['Сколько отдал в музей?',29,[19,39,26],'6 + 3 + 20 = 29'],['Сколько осталось?',21,[79,31,11],'50 − 29 = 21']]},
+ {id:'r7',name:'Скафандры',text:'На космической станции 8 красных скафандров, белых — в 5 раз больше, а синих — на 13 меньше, чем белых. Космонавты взяли 9 белых и 4 синих скафандра. Сколько скафандров осталось на станции?',
+  st:[['Сколько белых скафандров?',40,[13,3,45],'8 · 5 = 40'],['Сколько синих?',27,[53,13,35],'40 − 13 = 27'],['Сколько скафандров было всего?',75,[67,65,85],'8 + 40 + 27 = 75'],['Сколько взяли?',13,[5,23,4],'9 + 4 = 13'],['Сколько осталось?',62,[72,88,52],'75 − 13 = 62']]},
+ {id:'r8',name:'Награды героя',text:'У Капитана Звезды 17 медалей. Значков на 9 меньше, чем медалей, а грамот в 3 раза больше, чем значков. Капитан подарил друзьям 4 значка и 10 грамот, а потом получил ещё 6 медалей. Сколько наград стало у Капитана Звезды?',
+  st:[['Сколько значков?',8,[26,9,18],'17 − 9 = 8'],['Сколько грамот?',24,[51,11,27],'8 · 3 = 24'],['Сколько наград было сначала?',49,[39,59,33],'17 + 8 + 24 = 49'],['Сколько наград осталось после подарков?',35,[63,45,25],'4 + 10 = 14; 49 − 14 = 35'],['Сколько наград стало в конце?',41,[29,51,47],'35 + 6 = 41']]},
+ {id:'r9',name:'Фабрика роботов',text:'На фабрике собрали 7 роботов-строителей. Роботов-уборщиков в 4 раза больше, а роботов-поваров на 5 больше, чем уборщиков. За день купили 3 строителя, 12 уборщиков и 15 поваров. Сколько роботов осталось на фабрике?',
+  st:[['Сколько роботов-уборщиков?',28,[11,3,32],'7 · 4 = 28'],['Сколько роботов-поваров?',33,[23,38,30],'28 + 5 = 33'],['Сколько роботов собрали всего?',68,[61,58,78],'7 + 28 + 33 = 68'],['Сколько роботов купили?',30,[20,40,27],'3 + 12 + 15 = 30'],['Сколько осталось?',38,[48,98,28],'68 − 30 = 38']]},
+ {id:'r10',name:'Вратарь',text:'У вратаря 6 пар перчаток. Пар бутс на 4 больше, чем пар перчаток, а мячей в 3 раза больше, чем пар бутс. На сборы он взял 2 пары перчаток, 3 пары бутс и 10 мячей. Сколько предметов осталось дома, если пару перчаток и пару бутс считать за один предмет?',
+  st:[['Сколько пар бутс?',10,[2,24,14],'6 + 4 = 10'],['Сколько мячей?',30,[13,18,40],'10 · 3 = 30'],['Сколько всего предметов?',46,[36,56,40],'6 + 10 + 30 = 46'],['Сколько взял на сборы?',15,[13,5,25],'2 + 3 + 10 = 15'],['Сколько осталось дома?',31,[61,21,41],'46 − 15 = 31']]},
+ {id:'r11',name:'Тренировка',text:'Тренировка длилась 1 час 30 минут. Сначала была разминка, потом 40 минут игра в квадрат — это на 10 минут больше, чем удары по воротам. Сколько минут длилась разминка?',
+  st:[['Сколько минут в 1 часе 30 минутах?',90,[130,60,80],'60 + 30 = 90'],['Сколько минут били по воротам?',30,[50,10,40],'игра на 10 больше, значит удары меньше: 40 − 10 = 30'],['Сколько минут игра и удары вместе?',70,[60,80,50],'40 + 30 = 70'],['Сколько минут длилась разминка?',20,[30,10,70],'90 − 70 = 20']]},
+ {id:'r12',name:'Выход в космос',text:'Космонавт работал в открытом космосе 3 часа. Сначала 50 минут он чинил антенну, потом ставил солнечную батарею — на 20 минут дольше, чем чинил антенну, а всё остальное время фотографировал Землю. На сколько минут дольше он ставил батарею, чем фотографировал?',
+  st:[['Сколько минут в 3 часах?',180,[300,130,120],'60 + 60 + 60 = 180'],['Сколько минут ставил батарею?',70,[30,60,80],'50 + 20 = 70'],['Сколько минут антенна и батарея вместе?',120,[110,100,130],'50 + 70 = 120'],['Сколько минут фотографировал?',60,[70,50,240],'180 − 120 = 60'],['На сколько дольше ставил батарею?',10,[130,20,50],'70 − 60 = 10']]},
+ {id:'r13',name:'Мультфильм',text:'Мультфильм про динозавров идёт 1 час. Первая серия длится 25 минут, вторая — на 7 минут короче первой, а остальное время идёт третья серия. Сколько минут длится третья серия?',
+  st:[['Сколько минут в 1 часе?',60,[100,10,70],'1 ч = 60 мин'],['Сколько минут идёт вторая серия?',18,[32,8,28],'25 − 7 = 18'],['Сколько минут первая и вторая вместе?',43,[33,53,42],'25 + 18 = 43'],['Сколько минут длится третья?',17,[27,7,23],'60 − 43 = 17']]},
+ {id:'r14',name:'Патруль героя',text:'Супергерой патрулировал город 2 часа 15 минут. Над рекой он летал 45 минут, над парком — на 20 минут больше, чем над рекой, а остальное время — над вокзалом. Сколько минут он летал над вокзалом?',
+  st:[['Сколько минут в 2 часах 15 минутах?',135,[215,120,145],'60 + 60 + 15 = 135'],['Сколько минут над парком?',65,[25,55,75],'45 + 20 = 65'],['Сколько минут над рекой и парком?',110,[100,120,90],'45 + 65 = 110'],['Сколько минут над вокзалом?',25,[35,15,45],'135 − 110 = 25']]},
+ {id:'r15',name:'Пазл',text:'Мальчики 2 часа занимались пазлом с космосом. Рамку они собирали 35 минут, планеты — на 15 минут дольше, чем рамку, звёзды — на 30 минут меньше, чем планеты, а остальное время был перерыв. Сколько минут длился перерыв?',
+  st:[['Сколько минут в 2 часах?',120,[200,100,60],'60 + 60 = 120'],['Сколько минут собирали планеты?',50,[20,40,60],'35 + 15 = 50'],['Сколько минут собирали звёзды?',20,[80,30,65],'50 − 30 = 20'],['Сколько минут собирали всего?',105,[85,115,95],'35 + 50 + 20 = 105'],['Сколько минут длился перерыв?',15,[25,5,105],'120 − 105 = 15']]},
+ {id:'r16',name:'Экскурсия',text:'Экскурсия по динопарку: 40 минут в зале хищников, потом зал травоядных — на 15 минут меньше, а потом ещё 35 минут в кафе. На сколько минут экскурсия длилась дольше 1 часа?',
+  st:[['Сколько минут в зале травоядных?',25,[55,15,35],'40 − 15 = 25'],['Сколько минут длилась вся экскурсия?',100,[90,110,75],'40 + 25 + 35 = 100'],['На сколько минут дольше 1 часа?',40,[60,140,30],'1 ч = 60 мин; 100 − 60 = 40']]}];
+const R={state:'idle',ast:[],parts:[],y:180,ty:180,keys:{},flash:null,raf:0};let cv,cx,W=600,H=340;
+const stars=Array.from({length:60},()=>({x:Math.random(),y:Math.random(),s:Math.random()*1.6+.4,v:Math.random()*.6+.2}));
+reg({id:'rocket',icon:'🚀',name:'Перехват',cls:'c-space',blurb:'Задачи по шагам — аркада',items:RP,
+ about:'Задача решается по шагам. Управляй ракетой и лови астероид с верным числом. Неверный астероид отнимает жизнь.',
+ timeout(){R.flash={t:'Время вышло!',c:'#ff6f73',til:performance.now()+1200};mark('время');rLives();if(alive())clock.start(()=>CS.timeout(A))},
+ leave(){R.state='idle';cancelAnimationFrame(R.raf)},
+ open(it,box){R.it=it;R.step=0;R.ast=[];R.parts=[];R.state='idle';R.box=box;clock.stop();
+  box.innerHTML=`<div class="rgrid"><div class="panel ptext" id="rText"></div><div><div class="stage2"><canvas id="rCanvas"></canvas><div class="over" id="rOver"></div></div>
+   <div class="rhud"><span id="rLives"></span><div class="pad"><button class="btn ghost" id="rUp" aria-label="Вверх">▲</button><button class="btn ghost" id="rDown" aria-label="Вниз">▼</button><button class="btn ghost" id="rPause">Пауза</button></div></div>
+   <p class="muted" style="margin:6px 0 0;font-size:14px">Стрелки ▲▼ на клавиатуре, кнопки или палец по полю.</p></div></div>`;
+  cv=$('#rCanvas');cx=cv.getContext('2d');rResize();rText();rLives();
+  rOver(`<div><h3>${esc(it.name)}</h3><p>Прочитай задачу. Потом лови астероид с ответом на вопрос шага.</p><button class="btn big" id="rGo">Старт</button></div>`);
+  $('#rGo').onclick=()=>{rOver(null);R.state='run';R.y=R.ty=H/2;rWave();clock.start(()=>CS.timeout(A));R.last=performance.now();R.raf=requestAnimationFrame(rLoop)};
+  $('#rPause').onclick=()=>{if(R.state==='run'){R.state='pause';clock.paused=true;rOver(`<div><h3>Пауза</h3><button class="btn big" id="rCont">Продолжить</button></div>`);$('#rCont').onclick=()=>{rOver(null);R.state='run';clock.paused=false;R.last=performance.now();R.raf=requestAnimationFrame(rLoop)}}};
+  const setY=e=>{const r=cv.getBoundingClientRect();R.ty=(e.clientY-r.top)*(H/r.height)};
+  cv.onpointerdown=e=>{setY(e);cv.setPointerCapture(e.pointerId)};cv.onpointermove=e=>{if(e.buttons||e.pointerType==='mouse')setY(e)};
+  [['#rUp','up'],['#rDown','down']].forEach(([s,k])=>{const b=$(s);b.onpointerdown=e=>{e.preventDefault();R.keys[k]=true};b.onpointerup=b.onpointerleave=b.onpointercancel=()=>R.keys[k]=false});
+  rDraw()}});
+window.addEventListener('keydown',e=>{if(CS?.id!=='rocket'||R.state!=='run')return;if(e.key==='ArrowUp'){R.keys.up=true;e.preventDefault()}if(e.key==='ArrowDown'){R.keys.down=true;e.preventDefault()}});
+window.addEventListener('keyup',e=>{if(e.key==='ArrowUp')R.keys.up=false;if(e.key==='ArrowDown')R.keys.down=false});
+window.addEventListener('resize',()=>{if(CS?.id==='rocket'&&cv){rResize();rDraw()}});
+function rResize(){const r=cv.getBoundingClientRect();if(!r.width)return;const d=window.devicePixelRatio||1;W=r.width;H=r.height;cv.width=W*d;cv.height=H*d;cx.setTransform(d,0,0,d,0,0)}
+const rOver=h=>{const o=$('#rOver');if(h){o.innerHTML=h;o.hidden=false}else o.hidden=true};
+const rLives=()=>{const e=$('#rLives');if(e)e.innerHTML=CFG.lives?hearts(lifeOf(names()[0])):''};
+function rText(){const p=R.it,s=p.st[R.step];
+  $('#rText').innerHTML=`<p>${esc(p.text)}</p>${R.state==='win'?`<div class="stepq ok">Ответ: ${p.st.at(-1)[1]}</div>`:`<div class="stepq">Шаг ${R.step+1} из ${p.st.length}: ${esc(s[0])}</div>`}
+   <ul class="facts">${p.st.slice(0,R.step).map(s=>`<li>${esc(s[0])} <b>${s[1]}</b> <small>(${esc(s[3])})</small></li>`).join('')}</ul>`}
+function rWave(){const s=R.it.st[R.step],vals=shuffle([s[1],...s[2]]),lanes=shuffle([0,1,2,3]),gap=Math.max(150,W*.28);
+  R.ast=vals.map((v,k)=>({v,x:W+50+k*gap,y:H*(lanes[k]+.5)/4,r:Math.min(32,H/10),rot:Math.random()*6,spin:(Math.random()-.5)*1.5}))}
+function rEnd(ok){R.state=ok?'win':'lose';clock.stop();rText();rDraw();cancelAnimationFrame(R.raf);
+  if(ok){rOver(`<div><h3>Задача решена!</h3><p>Ответ: ${R.it.st.at(-1)[1]}.</p></div>`);finish(R.box,true,'ответ '+R.it.st.at(-1)[1],'Задача решена! Экипаж гордится тобой.')}
+  else{rOver(`<div><h3>Жизни закончились</h3><p>Перечитай задачу и попробуй снова.</p></div>`);finish(R.box,false,`не решена: остановился на шаге ${R.step+1}`,'Жизни закончились. Подсказка: сначала найди то, что можно узнать сразу.')}}
+function rLoop(t){if(R.state!=='run')return;const dt=Math.min(.05,(t-R.last)/1000);R.last=t;const sp=65*CFG.speed;
+  if(R.it&&CS?.id==='rocket'&&!alive())return;if(R.keys.up)R.ty-=320*dt;if(R.keys.down)R.ty+=320*dt;R.ty=Math.max(26,Math.min(H-26,R.ty));R.y+=(R.ty-R.y)*Math.min(1,dt*9);
+  stars.forEach(s=>{s.x-=s.v*dt*.12*CFG.speed;if(s.x<0)s.x+=1});
+  const s=R.it.st[R.step];
+  for(const a of R.ast){a.x-=sp*dt;a.rot+=a.spin*dt;
+    if(!a.hit&&Math.hypot(a.x-70,a.y-R.y)<a.r+18){a.hit=true;
+      if(a.v===s[1]){boom(a.x,a.y,'#51d68d');sfx('ok');R.flash={t:'Верно: '+a.v,c:'#51d68d',til:t+1100};R.step++;R.ast=[];
+        if(R.step>=R.it.st.length)return rEnd(true);prog(`решено шагов: ${R.step} из ${R.it.st.length}`);rText();setTimeout(()=>{if(R.state==='run'&&!R.ast.length)rWave()},500);break}
+      else{boom(a.x,a.y,'#ff6f73');R.flash={t:'Не то число!',c:'#ff6f73',til:t+1000};mark('условие задачи');rLives();if(!alive())return}}}
+  R.ast=R.ast.filter(a=>!a.hit&&a.x>-60);
+  if(!R.ast.length&&!R.pend){R.pend=1;setTimeout(()=>{R.pend=0;if(R.state==='run'&&!R.ast.length)rWave()},450)}
+  R.parts.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.l-=dt});R.parts=R.parts.filter(p=>p.l>0);rDraw(t);R.raf=requestAnimationFrame(rLoop)}
+function boom(x,y,c){for(let i=0;i<22;i++){const a=Math.random()*6.28,s=60+Math.random()*160;R.parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:.6+Math.random()*.4,c})}}
+function rDraw(t=performance.now()){if(!cx)return;
+  const g=cx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#0b1030');g.addColorStop(1,'#1b1150');cx.fillStyle=g;cx.fillRect(0,0,W,H);
+  stars.forEach(s=>{cx.fillStyle='rgba(255,255,255,'+(.35+s.s/3)+')';cx.fillRect(s.x*W,s.y*H,s.s,s.s)});
+  cx.fillStyle='#e9800f';cx.beginPath();cx.arc(W-40,H-20,46,0,6.28);cx.fill();
+  for(const a of R.ast){cx.save();cx.translate(a.x,a.y);cx.rotate(a.rot);cx.fillStyle='#7d6a5a';cx.strokeStyle='#2a2030';cx.lineWidth=3;cx.beginPath();
+    for(let k=0;k<9;k++){const an=k/9*6.28,rr=a.r*(k%2?.9:1.05);cx.lineTo(Math.cos(an)*rr,Math.sin(an)*rr)}cx.closePath();cx.fill();cx.stroke();cx.restore();
+    cx.fillStyle='#fff';cx.font='900 '+Math.round(a.r*.72)+'px Nunito,system-ui,sans-serif';cx.textAlign='center';cx.textBaseline='middle';cx.lineWidth=4;cx.strokeStyle='#1b1430';cx.strokeText(a.v,a.x,a.y+1);cx.fillText(a.v,a.x,a.y+1)}
+  cx.save();cx.translate(70,R.y);const fl=6+Math.sin(t/60)*3;cx.fillStyle='#ffc629';cx.beginPath();cx.moveTo(-26,-7);cx.lineTo(-38-fl,0);cx.lineTo(-26,7);cx.fill();
+  cx.fillStyle='#e8463f';cx.beginPath();cx.moveTo(-22,-12);cx.lineTo(-30,-22);cx.lineTo(-10,-12);cx.fill();cx.beginPath();cx.moveTo(-22,12);cx.lineTo(-30,22);cx.lineTo(-10,12);cx.fill();
+  cx.fillStyle='#f2f4ff';cx.strokeStyle='#141b34';cx.lineWidth=3;cx.beginPath();cx.moveTo(-26,-12);cx.lineTo(10,-12);cx.quadraticCurveTo(30,-10,34,0);cx.quadraticCurveTo(30,10,10,12);cx.lineTo(-26,12);cx.closePath();cx.fill();cx.stroke();
+  cx.fillStyle='#5a3fd4';cx.beginPath();cx.arc(6,0,6,0,6.28);cx.fill();cx.stroke();cx.restore();
+  R.parts.forEach(p=>{cx.globalAlpha=Math.max(0,p.l);cx.fillStyle=p.c;cx.fillRect(p.x,p.y,4,4)});cx.globalAlpha=1;
+  if(R.flash&&t<R.flash.til){cx.font='400 24px "Russo One",system-ui,sans-serif';cx.textAlign='center';cx.fillStyle=R.flash.c;cx.fillText(R.flash.t,W/2,32)}}
+
+/* ===== CHAMPIONS' CHALLENGE: olympiad problems with models and hint ladders ===== */
+const H5={0:[3,9],1:[2,4,6,8,10],2:[3,5,7,9],3:[2,4,6,8,10],4:[3,5,7,9],5:[4,6,8],6:[3,5,7,9],7:[4,8]};
+const rowsCells=r=>r.flatMap((s,y)=>[...s].map((c,x)=>c==='#'?[x,y]:null).filter(Boolean));
+const OL=[
+ {id:'o1',name:'Буквы',ty:'let',a:'ГОД',t:'Найдите в каждой строке букву, которая значительно отличается от остальных букв в своей строке, и запишите их по порядку. Какое слово получилось?',
+  p:[['ПГНЕ',1,'f-stripe','f-dots'],['ИАУО',3,'f-cut',''],['КЛДС',2,'','f-small']]},
+ {id:'o1a',name:'Шифр комментатора',ty:'let',a:'МЯЧ',t:'Футбольный комментатор спрятал слово. В каждой строке одна буква нарисована не так, как остальные. Собери эти буквы сверху вниз. Какое слово получилось?',
+  p:[['ПМРС',1,'f-outline',''],['ЯЕЁЮ',0,'f-small',''],['ШЧЖЦ',1,'','f-stripe']]},
+ {id:'o1b',name:'Шифровка с орбиты',ty:'let',a:'ЛУНА',t:'Астронавт получил шифровку из четырёх строк. В каждой строке найди «лишнюю» букву — она отличается от соседей. Прочитай буквы по порядку.',
+  p:[['ШЛМЖ',1,'f-bold','f-thin'],['БВУР',2,'','f-flip'],['НКФХ',0,'f-dots','f-stripe'],['ЭЮЯА',3,'f-outline','']]},
+ {id:'o1c',name:'Подсказка героя',ty:'let',a:'ЩИТ',t:'Супергерой оставил подсказку: в каждой строке одна буква «не такая, как все». Какое слово он загадал?',
+  p:[['ГЩПТ',1,'f-rot',''],['ЬИЫЪ',1,'f-small',''],['ЕЗТЖ',2,'f-cut','f-dots']]},
+ {id:'o2',name:'Шкатулки',ty:'box',a:4,u:'',t:'У бабушки есть 7 больших пустых шкатулок и 5 маленьких. Внучок убрал маленькие шкатулки в большие. Сколько осталось пустых больших шкатулок, если в 2 большие он убрал по 2 маленькие?',p:{B:7,S:5},
+  h:['Сколько маленьких шкатулок он убрал в те 2 большие?','2 большие по 2 маленькие — это 2 · 2 = 4 маленькие. Осталась 5 − 4 = 1 маленькая — она займёт ещё одну большую.','Пустых больших: 7 − 2 − 1 = 4.']},
+ {id:'o2a',name:'Сумки тренера',ty:'box',a:2,t:'У тренера 10 больших пустых сумок и 8 маленьких. Он сложил все маленькие в большие: в некоторые — по 2 маленькие, в другие — по одной. Пустыми остались 4 большие сумки. В сколько больших сумок он положил по 2 маленькие?',p:{B:10,S:8},
+  h:['Сколько больших сумок заняты? 10 − 4 = 6.','В 6 больших лежат 8 маленьких. Если бы в каждой было по одной, было бы 6 маленьких. А их 8 — на 2 больше.','Каждая «двойная» сумка добавляет одну лишнюю маленькую: таких сумок 2. Проверка: 2 · 2 + 4 · 1 = 8.']},
+ {id:'o2b',name:'Контейнеры',ty:'box',a:6,t:'На станции 9 больших пустых контейнеров и 8 маленьких. Робот спрятал все маленькие в большие: в один большой — 3 маленьких, а остальные маленькие — по одному в другие большие. Сколько больших контейнеров оказались НЕ пустыми?',p:{B:9,S:8},
+  h:['Сколько маленьких осталось после того, как в один большой положили 3?','8 − 3 = 5 маленьких — каждый занял отдельный большой.','Не пустые: 1 + 5 = 6.']},
+ {id:'o2c',name:'Гнёзда',ty:'box',a:10,t:'У динозаврихи 12 больших пустых гнёзд и 6 маленьких корзинок. Она поставила корзинки в гнёзда: в 2 гнезда — по 3 корзинки. Сколько гнёзд осталось пустыми?',p:{B:12,S:6},
+  h:['Сколько корзинок попало в эти 2 гнезда?','2 · 3 = 6 — значит, все корзинки уже стоят в двух гнёздах.','Занято 2 гнезда. Пустых: 12 − 2 = 10.']},
+ {id:'o3',name:'Муравьи',ty:'ant',a:12,u:'м',t:'Первый муравей прополз по всей линии А, а второй — по всей линии Б (обе линии показаны на рисунке). Второй муравей прополз 10 метров. Сколько прополз первый муравей?',p:{d:1,n:1},
+  h:['Сравни горизонтальные кусочки линий А и Б: вместе они одинаковые.','Вертикальный кусочек линии Б короче: на 1 метр сверху и на 1 метр снизу.','Линия А длиннее на 1 + 1 = 2 м: 10 + 2 = 12 м.']},
+ {id:'o3a',name:'Роботы-пылесосы',ty:'ant',a:19,u:'м',t:'Два робота-пылесоса едут по дорожкам-ступенькам: синий — по линии А, красный — по линии Б. Между дорожками везде 2 метра. Красный робот проехал 15 метров. Сколько метров проехал синий?',p:{d:2,n:1},
+  h:['Горизонтальные части дорожек вместе одинаковые.','Вертикальная часть Б короче на 2 м сверху и на 2 м снизу.','Синий проехал на 2 + 2 = 4 м больше: 15 + 4 = 19 м.']},
+ {id:'o3b',name:'Жуки',ty:'ant',a:21,u:'м',t:'Синий жук прополз по тропинке А 23 метра, а зелёный — по тропинке Б. Между тропинками везде 1 метр. Сколько метров прополз зелёный жук?',p:{d:1,n:1},
+  h:['Какая тропинка короче — А или Б?','Тропинка Б короче на 1 м сверху и на 1 м снизу.','23 − 2 = 21 м.']},
+ {id:'o3c',name:'Две ступеньки',ty:'ant',a:18,u:'м',t:'Динозаврик спускается по тропинке Б с двумя ступеньками, а его мама идёт рядом по тропинке А. Между тропинками везде 1 метр. Динозаврик прошёл 16 метров. Сколько прошла мама?',p:{d:1,n:2},
+  h:['Горизонтальные кусочки у тропинок вместе одинаковые — и при двух ступеньках тоже.','Подсвети разницу: тропинка Б начинается на 1 м ниже и заканчивается на 1 м выше. Всё между у них одинаково.','Неважно, сколько ступенек: мама прошла на 2 м больше. 16 + 2 = 18 м.']},
+ {id:'o4',name:'Уголки',ty:'cut',a:5,t:'Егор вырезал из фигуры на рисунке по линиям клеток три трёхклеточных уголка, а остальное разрезал на квадратики 2×2 без остатка. Сколько получилось квадратиков?',p:{rot:1},
+  h:['Посчитай все клетки фигуры. Нажимай на клетки, чтобы отмечать посчитанные.','В фигуре 29 клеток. Три уголка забирают 3 + 3 + 3 = 9 клеток.','Осталось 29 − 9 = 20 клеток. В квадратике 4 клетки: 5 · 4 = 20 — значит, 5 квадратиков.']},
+ {id:'o4a',name:'Ракета из клеток',ty:'cut',a:4,t:'Тимур вырезал из фигуры-ракеты по линиям клеток два трёхклеточных уголка, а остальное разрезал на квадратики 2×2 без остатка. Сколько получилось квадратиков?',p:{r:['.##.','.##.','.##.','.##.','.##.','.##.','.##.','####','####']},
+  h:['Посчитай клетки ракеты.','В ракете 22 клетки. Два уголка — это 3 + 3 = 6 клеток.','22 − 6 = 16 клеток; 4 · 4 = 16 — значит, 4 квадратика.']},
+ {id:'o4b',name:'Футбольное поле',ty:'cut',a:6,t:'Футбольное поле 6×6 клеток разрезали по линиям клеток на четыре трёхклеточных уголка и квадратики 2×2. Сколько вышло квадратиков?',p:{r:['######','######','######','######','######','######']},
+  h:['Сколько клеток в поле 6 на 6? Это 6 · 6.','36 клеток. Четыре уголка забирают 4 · 3 = 12 клеток.','36 − 12 = 24; 6 · 4 = 24 — значит, 6 квадратиков.']},
+ {id:'o4c',name:'Динозавр из клеток',ty:'cut',a:3,t:'Из фигуры-динозавра вырезали по линиям клеток один трёхклеточный уголок, а остальное разрезали на квадратики 2×2. Сколько получилось квадратиков?',p:{r:['....##','....##','######','#####.']},
+  h:['Посчитай клетки динозавра.','В динозавре 15 клеток, уголок забирает 3.','15 − 3 = 12; 3 · 4 = 12 — значит, 3 квадратика.']},
+ {id:'o5',name:'Гуси и козы',ty:'legs',a:4,t:'На лугу гуляют гуси и козы. Всего у них 16 ног, а гусей на два больше, чем коз. Сколько на лугу гусей?',p:{an:'коз',al:4,bn:'гусей',bl:2,d:2,T:16,w:'ног'},
+  h:['Попробуй: пусть коза одна. Сколько тогда гусей и сколько ног?','1 коза и 3 гуся: 4 + 2 + 2 + 2 = 10 ног — маловато. Добавь козу.','2 козы и 4 гуся: 4 + 4 + 2 + 2 + 2 + 2 = 16. Гусей 4.']},
+ {id:'o5a',name:'Вольер',ty:'legs',a:5,t:'В вольере трицератопсы (у каждого 4 ноги) и тираннозавры (у каждого 2 ноги). Всего у них 26 ног, а тираннозавров на 2 меньше, чем трицератопсов. Сколько трицератопсов?',p:{an:'трицератопсов',al:4,bn:'тираннозавров',bl:2,d:-2,T:26,w:'ног'},
+  h:['Подбирай: начни с 3 трицератопсов.','3 трицератопса и 1 тираннозавр: 12 + 2 = 14 ног — мало.','5 трицератопсов (20 ног) и 3 тираннозавра (6 ног) = 26. Ответ: 5.']},
+ {id:'o5b',name:'Роботы на колёсах',ty:'legs',a:3,t:'На станции роботы на 4 колёсах и на 3 колёсах. Трёхколёсных на 1 больше, чем четырёхколёсных. Всего у роботов 24 колеса. Сколько четырёхколёсных роботов?',p:{an:'четырёхколёсных',al:4,bn:'трёхколёсных',bl:3,d:1,T:24,w:'колёс'},
+  h:['Попробуй одного четырёхколёсного: сколько тогда трёхколёсных и колёс?','1 и 2 робота: 4 + 3 + 3 = 10 колёс. Мало, увеличивай.','3 четырёхколёсных (12 колёс) и 4 трёхколёсных (12 колёс) = 24. Ответ: 3.']},
+ {id:'o5c',name:'Раздевалка',ty:'legs',a:6,t:'В раздевалке стадиона стоят табуретки (у каждой 3 ножки) и стулья (у каждого 4 ножки). Стульев на 2 меньше, чем табуреток. Всего 34 ножки. Сколько табуреток?',p:{an:'табуреток',al:3,bn:'стульев',bl:4,d:-2,T:34,w:'ножек'},
+  h:['Если табуреток 3, то стул один. Сколько ножек?','3 табуретки и 1 стул: 9 + 4 = 13. Мало, добавляй табуретки.','6 табуреток (18 ножек) и 4 стула (16 ножек) = 34. Табуреток 6.']},
+ {id:'o6',name:'Носки',ty:'socks',a:6,t:'Петя знает, сколько разных цветов у его носков в ящике комода. Ему нужно достать пару одинакового цвета, но в комнате темно. Тогда умный Петя подумал и понял, что придётся достать хотя бы 7 носков, чтобы среди них гарантированно оказалась пара одноцветных носков. Сколько цветов у Петиных носков?',p:{n:2,k:2},
+  h:['Представь самого невезучего Петю: каждый новый носок другого цвета, пока это возможно.','Если цветов 6, то 6 носков могут оказаться все разными, а седьмой обязательно совпадёт.','Цветов ровно 6. Если бы их было 7 или больше, семь носков могли бы оказаться разными.']},
+ {id:'o6a',name:'Мячи в мешке',ty:'socks',a:3,t:'В мешке мячи нескольких цветов. Капитан команды посчитал: чтобы наверняка достать не глядя ТРИ мяча одного цвета, нужно взять хотя бы 7 мячей. Сколько цветов у мячей?',p:{n:3,k:2},
+  h:['Невезучий достаёт так, чтобы трёх одинаковых не было как можно дольше: не больше 2 мячей каждого цвета.','Если цветов 3, можно взять по 2 каждого цвета — это 6 мячей без тройки. Седьмой обязательно сделает тройку.','Цветов 3. Проверь в модели: поставь 3 цвета.']},
+ {id:'o6b',name:'Фигурки',ty:'socks',a:4,t:'В коробке фигурки динозавров трёх цветов: зелёные, жёлтые и синие. Сколько фигурок нужно достать не глядя, чтобы среди них наверняка оказались две одного цвета?',p:{n:2,k:3},
+  h:['Будь невезучим: какие фигурки ты можешь достать первыми?','Три фигурки могут оказаться разного цвета.','Четвёртая обязательно совпадёт с одной из них. Ответ: 4.']},
+ {id:'o6c',name:'Наклейки',ty:'socks',a:5,t:'В коробке космические наклейки двух видов: ракеты и планеты. Сколько наклеек нужно взять не глядя, чтобы среди них наверняка было ТРИ одинаковые?',p:{n:3,k:2},
+  h:['Невезучий может набрать по 2 наклейки каждого вида — и ни одной тройки.','2 ракеты и 2 планеты — это 4 наклейки, трёх одинаковых пока нет.','Пятая наклейка обязательно сделает тройку. Ответ: 5.']},
+ {id:'o7',name:'Хомяки',ty:'scale',a:3,u:'фунта',t:'7 хомяков и 3 морские свинки весят 16 фунтов, а 3 хомяка весят как свинка. Сколько фунтов весит одна свинка? (Все хомяки весят одинаково, и все свинки весят одинаково.)',p:{a:7,b:3,k:3,s:'хомяк',l:'свинка'},
+  h:['Замени на весах каждую свинку на 3 хомяка — весы не изменятся.','3 свинки = 3 + 3 + 3 = 9 хомяков. Всего 7 + 9 = 16 хомяков весят 16 фунтов.','Один хомяк весит 1 фунт, а свинка как 3 хомяка — 3 фунта.']},
+ {id:'o7a',name:'Щиты и шлемы',ty:'scale',a:6,u:'кг',t:'3 щита и 2 шлема весят 21 кг, а шлем весит как 2 щита. Сколько килограммов весит шлем? (Все щиты одинаковые, все шлемы одинаковые.)',p:{a:3,b:2,k:2,s:'щит',l:'шлем'},
+  h:['Замени каждый шлем на 2 щита.','2 шлема = 4 щита. Всего 3 + 4 = 7 щитов весят 21 кг.','7 щитов — 21 кг, значит щит весит 3 кг (3 · 7 = 21). Шлем = 2 щита = 6 кг.']},
+ {id:'o7b',name:'Камни',ty:'scale',a:4,u:'кг',t:'Динозавр положил на весы 5 маленьких камней и 1 большой — вместе 32 кг. Большой камень весит как 3 маленьких. Сколько весит один маленький камень?',p:{a:5,b:1,k:3,s:'маленький',l:'большой'},
+  h:['Замени большой камень на 3 маленьких.','5 + 3 = 8 маленьких камней весят 32 кг.','Какое число умножить на 8, чтобы получить 32? Маленький камень весит 4 кг.']},
+ {id:'o7c',name:'Зонды и спутники',ty:'scale',a:24,u:'кг',t:'4 зонда и 2 спутника весят 40 кг. Спутник весит как 3 зонда. Сколько весят 2 спутника вместе?',p:{a:4,b:2,k:3,s:'зонд',l:'спутник'},
+  h:['Замени каждый спутник на 3 зонда.','2 спутника = 6 зондов. Всего 4 + 6 = 10 зондов — 40 кг.','Зонд — 4 кг, спутник — 12 кг, два спутника — 24 кг.']},
+ {id:'o8',name:'Пирожки',ty:'swap',a:9,t:'У Пети на 6 пирожков больше, чем у Ромы. Если Петя передаст Роме столько пирожков, сколько уже есть у Ромы, то у них станет поровну пирожков. Сколько пирожков было у Пети?',p:{d:6,A:'Петя',B:'Рома'},
+  h:['Подбирай в модели, сколько пирожков было у Ромы.','После передачи у Пети остаются ровно 6 «лишних» пирожков. Чтобы стало поровну, у Ромы тоже должно стать 6.','Рома получил столько, сколько имел: у него было 3. У Пети было 3 + 6 = 9.']},
+ {id:'o8a',name:'Футбольные значки',ty:'swap',a:20,t:'У Саши на 10 футбольных значков меньше, чем у Вани. Ваня отдал Саше столько значков, сколько у Саши уже было, и значков у них стало поровну. Сколько значков у мальчиков вместе?',p:{d:10,A:'Ваня',B:'Саша'},
+  h:['Подбирай в модели, сколько значков было у Саши.','У Вани после передачи остаётся 10 — значит, и у Саши стало 10.','Поровну по 10 — вместе 20. (Было: у Саши 5, у Вани 15.)']},
+ {id:'o8b',name:'Батарейки',ty:'swap',a:4,t:'У робота Р-2 на 8 батареек больше, чем у робота Бипа. Р-2 отдал Бипу столько батареек, сколько у Бипа было, и батареек стало поровну. Сколько батареек было у Бипа?',p:{d:8,A:'Р-2',B:'Бип'},
+  h:['Подбирай в модели, сколько батареек было у Бипа.','У Р-2 после передачи остаётся 8, значит, у Бипа стало 8.','Бип удвоил свои батарейки и получил 8 — было 4.']},
+ {id:'o8c',name:'Карточки',ty:'swap',a:12,t:'У Димы на 12 карточек с динозаврами больше, чем у Лёши. Дима отдал Лёше столько карточек, сколько у Лёши было, и карточек стало поровну. Сколько карточек стало у каждого?',p:{d:12,A:'Дима',B:'Лёша'},
+  h:['Посчитай, сколько останется у Димы после передачи.','Дима отдал ровно столько, сколько было у Лёши, — у него остались только «лишние» 12.','Поровну — значит, у каждого по 12.']},
+ {id:'o9',name:'Белоснежка',ty:'perm',a:12,t:'Четыре гнома принесли Белоснежке туфли, серёжки, шарф и перчатки. Белоснежка всё это хочет надеть по очереди, причём шарф она хочет надеть после серёжек (можно не сразу после серёжек). Сколькими способами можно надеть эти предметы?',p:{it:['туфли','серёжки','шарф','перчатки'],af:['шарф','серёжки']},
+  h:['Составляй варианты в модели по порядку, чтобы ничего не пропустить.','Сначала расставь только серёжки (С) и шарф (Ш): С Ш _ _, С _ Ш _, С _ _ Ш, _ С Ш _, _ С _ Ш, _ _ С Ш — 6 способов.','В каждом из 6 способов туфли и перчатки встают 2 способами: 6 · 2 = 12.']},
+ {id:'o9a',name:'Очередь динозавров',ty:'perm',a:24,t:'Четыре динозаврика — Рекс, Трики, Птера и Стег — встают в очередь за мороженым. Сколькими способами они могут встать?',p:{it:['Рекс','Трики','Птера','Стег']},
+  h:['Первым может встать любой из четырёх.','Если Рекс первый, остальные трое встают 6 способами — проверь в модели.','4 · 6 = 24.']},
+ {id:'o9b',name:'Рюкзак космонавта',ty:'perm',a:6,t:'Космонавт складывает в рюкзак шлем, фонарик, перчатки и карту. Шлем он всегда кладёт первым, остальные вещи — в любом порядке. Сколькими способами он может сложить рюкзак?',p:{it:['шлем','фонарик','перчатки','карта'],fi:'шлем'},
+  h:['Шлем всегда первый — думай только об остальных трёх вещах.','Если вторым идёт фонарик, остаются 2 способа. Так же для перчаток и для карты.','3 · 2 = 6.']},
+ {id:'o9c',name:'Выход героев',ty:'perm',a:4,t:'Три героя — Молния, Звезда и Щит — выходят на сцену по очереди. Звезда и Щит — напарники, поэтому выходят друг за другом (в любом порядке). Сколько есть способов?',p:{it:['Молния','Звезда','Щит'],adj:['Звезда','Щит']},
+  h:['Запиши все порядки трёх героев — их 6.','Вычеркни те, где между Звездой и Щитом стоит Молния.','Остаются 4 способа: Звезда и Щит рядом — как один «блок», который может стоять первым или вторым, а внутри блока 2 порядка: 2 · 2 = 4.']},
+ {id:'o10',name:'Мультфильмы',ty:'venn',a:18,t:'В классе 30 детей. Ровно 10 детей не смотрели «Смешариков», ровно 6 детей не смотрели «Лунтика», и ровно 4 детей не смотрели ни того, ни другого мультика. Сколько детей смотрели оба мультфильма?',p:{N:30,nA:10,nB:6,n0:4,A:'«Смешарики»',B:'«Лунтик»'},
+  h:['Нарисуй два круга: «смотрели Смешариков» и «смотрели Лунтика». 4 ребёнка — вне кругов.','Не смотрели Смешариков 10, из них 4 не смотрели ничего — значит, 6 смотрели только Лунтика. Так же: только Смешариков 6 − 4 = 2.','Оба мультфильма: 30 − 4 − 6 − 2 = 18.']},
+ {id:'o10a',name:'Спортивный клуб',ty:'venn',a:15,t:'В спортивном клубе 25 ребят. 8 из них не ходят на футбол, 5 не ходят на плавание, а 3 не ходят ни туда, ни туда. Сколько ребят ходят и на футбол, и на плавание?',p:{N:25,nA:8,nB:5,n0:3,A:'футбол',B:'плавание'},
+  h:['Нарисуй два круга: «футбол» и «плавание». 3 ребёнка — вне кругов.','Не ходят на футбол 8, из них 3 никуда не ходят — значит, 5 ходят только на плавание. Только на футбол: 5 − 3 = 2.','И туда, и туда: 25 − 3 − 5 − 2 = 15.']},
+ {id:'o10b',name:'Книжный кружок',ty:'venn',a:13,t:'В кружке 20 ребят. 7 не любят книги про космос, 5 не любят книги про динозавров, а 2 не любят ни те, ни другие. Сколько ребят любят книги про космос?',p:{N:20,nA:7,nB:5,n0:2,A:'космос',B:'динозавры'},
+  h:['Два круга: «любят про космос» и «любят про динозавров». 2 ребёнка — вне кругов.','Только про динозавров: 7 − 2 = 5. Только про космос: 5 − 2 = 3. И те, и другие: 20 − 2 − 5 − 3 = 10.','Про космос любят все, кто в круге «космос»: 3 + 10 = 13. Проверка: 20 − 7 = 13.']},
+ {id:'o10c',name:'Фильмы о героях',ty:'venn',a:11,t:'В классе 28 учеников. 9 не смотрели фильм «Человек-Молния», 8 не смотрели фильм «Стальная Леди», а 3 не смотрели ни один из них. Сколько учеников смотрели ТОЛЬКО ОДИН из этих фильмов?',p:{N:28,nA:9,nB:8,n0:3,A:'«Человек-Молния»',B:'«Стальная Леди»'},
+  h:['Два круга для двух фильмов, 3 ученика — вне кругов.','Только «Стальную Леди»: 9 − 3 = 6. Только «Человека-Молнию»: 8 − 3 = 5.','Только один фильм: 6 + 5 = 11.']}];
+OL.filter(o=>o.ty==='let').forEach(o=>o.h=['Смотри не на то, какая это буква, а на то, как она нарисована: узор, размер, толщина, поворот.','Сравни буквы в первой строке: у одной другой рисунок.',`Первая буква слова — «${o.a[0]}».`]);
+// models
+const MOD={
+ let(o,m){let pick=o.p.map(()=>null);
+  m.innerHTML=o.p.map(([L,odd,c,d],r)=>`<div class="lrow">${[...L].map((ch,i)=>`<button class="lt ${i===odd?d:c}" data-r="${r}" data-i="${i}">${ch}</button>`).join('')}</div>`).join('')+`<div class="lword">Слово: <b>…</b></div>`;
+  m.querySelectorAll('.lt').forEach(b=>b.onclick=()=>{const r=+b.dataset.r;m.querySelectorAll(`.lt[data-r="${r}"]`).forEach(x=>x.classList.remove('sel'));b.classList.add('sel');pick[r]=b.textContent;
+   m.querySelector('.lword b').textContent=pick.map(x=>x||'_').join('')});
+  return ()=>pick.join('')},
+ box(o,m){const {B,S}=o.p;let left=S,box=Array(B).fill(0);
+  const draw=()=>{m.innerHTML=`<p class="muted">Нажимай на большую коробку, чтобы положить в неё маленькую.</p><div class="boxes">${box.map((n,i)=>`<button class="bx ${n?'full':''}" data-i="${i}">${'▪'.repeat(n)||'пусто'}</button>`).join('')}</div>
+   <div class="row"><span>Маленьких осталось: <b>${left}</b></span><span>Пустых больших: <b>${box.filter(n=>!n).length}</b></span><button class="btn ghost" data-a="r">Сначала</button></div>`;
+   m.querySelectorAll('.bx').forEach(b=>b.onclick=()=>{if(left){box[+b.dataset.i]++;left--;draw()}});m.querySelector('[data-a=r]').onclick=()=>{left=S;box=Array(B).fill(0);draw()}};draw()},
+ ant(o,m){const {d,n}=o.p,s=26,X=n===1?[0,7,14]:[0,5,10,15],Y=n===1?[0,5]:[0,4,8];
+  const A=[],Bp=[];A.push([X[0],0]);for(let k=0;k<n;k++){A.push([X[k+1],Y[k]]);A.push([X[k+1],Y[k+1]])}A.push([X.at(-1),Y.at(-1)]);
+  Bp.push([0,d]);for(let k=0;k<n;k++){Bp.push([X[k+1]+d,k===0?d:Y[k]+d]);Bp.push([X[k+1]+d,k===n-1?Y[k+1]-d:Y[k+1]+d])}Bp.push([X.at(-1),Y.at(-1)-d]);
+  const pt=p=>p.map(([x,y])=>`${20+x*s},${20+y*s}`).join(' ');const w=40+X.at(-1)*s,h=40+Y.at(-1)*s;
+  const extra=`<path d="M${20+X[1]*s} 20 v${d*s}M${20+X.at(-2)*s} ${20+Y.at(-1)*s} v${-d*s}" stroke="var(--gold)" stroke-width="9" stroke-linecap="round" class="ex" opacity="0"/>`;
+  m.innerHTML=`<svg viewBox="0 0 ${w} ${h}" class="antsvg">${extra}<polyline points="${pt(A)}" fill="none" stroke="#2a6df4" stroke-width="5"/><polyline points="${pt(Bp)}" fill="none" stroke="#e0332d" stroke-width="4" stroke-dasharray="10 6"/>
+   <text x="6" y="18" font-weight="900" fill="currentColor">А</text><text x="6" y="${20+d*s+6}" font-weight="900" fill="currentColor">Б</text></svg>
+   <div class="row"><button class="btn ghost">Подсветить, где линии разные</button><span class="muted">Между линиями везде ${d} м.</span></div>`;
+  m.querySelector('button').onclick=()=>m.querySelector('.ex').setAttribute('opacity','1')},
+ cut(o,m){const cells=o.p.rot?Object.entries(H5).flatMap(([L,xs])=>xs.map(x=>[x,+L])):rowsCells(o.p.r);let n=0;
+  const s=o.p.rot?22:30;const W=o.p.rot?12*s:Math.max(...cells.map(c=>c[0]))*s+s+8,Hh=o.p.rot?9*s:Math.max(...cells.map(c=>c[1]))*s+s+8;
+  m.innerHTML=`<svg viewBox="0 0 ${W} ${Hh}" class="cutsvg">${cells.map(([x,y],i)=>o.p.rot?`<polygon data-i="${i}" points="${x*s},${y*s} ${x*s+s},${y*s+s} ${x*s},${y*s+2*s} ${x*s-s},${y*s+s}"/>`:`<rect data-i="${i}" x="${4+x*s}" y="${4+y*s}" width="${s}" height="${s}"/>`).join('')}</svg>
+   <div class="row"><span>Отмечено клеток: <b>0</b></span><button class="btn ghost">Сбросить отметки</button></div>`;
+  const cnt=m.querySelector('b');m.querySelectorAll('[data-i]').forEach(p=>p.onclick=()=>{p.classList.toggle('on');cnt.textContent=m.querySelectorAll('.on').length});
+  m.querySelector('button').onclick=()=>{m.querySelectorAll('.on').forEach(p=>p.classList.remove('on'));cnt.textContent=0}},
+ legs(o,m){const p=o.p;let a=1;const draw=()=>{const b=a+p.d,tot=a*p.al+Math.max(0,b)*p.bl;
+   m.innerHTML=`<p class="muted">Подбирай число ${p.an} кнопками — модель сама посчитает остальное.</p><div class="row"><button class="btn ghost" data-v="-1">−</button><b class="big2">${a}</b><button class="btn ghost" data-v="1">+</button><span>${p.an}</span></div>
+    <p>${p.bn}: <b>${Math.max(0,b)}</b> · всего ${p.w}: <b>${a}·${p.al} + ${Math.max(0,b)}·${p.bl} = ${tot}</b> ${tot===p.T&&b>=0?'✓ как в условии!':tot<p.T?'— мало':'— много'}</p>`;
+   m.querySelectorAll('[data-v]').forEach(x=>x.onclick=()=>{a=Math.max(0,a+ +x.dataset.v);draw()})};draw()},
+ socks(o,m){let k=o.p.k,n=o.p.n,got=[];const C=['#e0332d','#2a6df4','#1d9a52','#ffc629','#b0369a','#e9800f','#0b8bb0','#8a5a2b','#555'];
+  const draw=()=>{const cnt=Array(k).fill(0);got.forEach(c=>cnt[c]++);const done=cnt.some(x=>x>=n);
+   m.innerHTML=`<p class="muted">Модель «невезучего»: он тянет так, чтобы ${n} одинаковых не получалось как можно дольше.</p>
+    <div class="row">Цветов: <button class="btn ghost" data-k="-1">−</button><b class="big2">${k}</b><button class="btn ghost" data-k="1">+</button></div>
+    <div class="socks">${got.map(c=>`<i style="background:${C[c]}"></i>`).join('')}</div>
+    <div class="row"><button class="btn" data-a="t" ${done?'disabled':''}>Вытащить ещё один</button><button class="btn ghost" data-a="r">Сначала</button><span>Вытащено: <b>${got.length}</b></span></div>
+    ${done?`<p class="msg ok">Теперь точно есть ${n} одного цвета! Понадобилось ${got.length}.</p>`:''}`;
+   m.querySelectorAll('[data-k]').forEach(x=>x.onclick=()=>{k=Math.min(9,Math.max(1,k+ +x.dataset.k));got=[];draw()});
+   m.querySelector('[data-a=r]').onclick=()=>{got=[];draw()};
+   m.querySelector('[data-a=t]').onclick=()=>{let c=cnt.findIndex(x=>x<n-1);if(c<0)c=0;got.push(c);draw()}};draw()},
+ scale(o,m){const p=o.p;let b=p.b;const draw=()=>{const sm=p.a+(p.b-b)*p.k;
+   m.innerHTML=`<div class="scale"><div class="pan">${'<i class="sm"></i>'.repeat(sm)}${'<i class="lg"></i>'.repeat(b)}</div><div class="beam"></div></div>
+    <p>На весах: <b>${sm}</b> × «${p.s}» и <b>${b}</b> × «${p.l}». Помни: 1 «${p.l}» весит как ${p.k} × «${p.s}».</p>
+    <div class="row"><button class="btn" ${b?'':'disabled'}>Заменить один «${p.l}» на ${p.k} × «${p.s}»</button><button class="btn ghost" data-a="r">Сначала</button></div>`;
+   m.querySelector('.btn').onclick=()=>{if(b){b--;draw()}};m.querySelector('[data-a=r]').onclick=()=>{b=p.b;draw()}};draw()},
+ swap(o,m){const p=o.p;let r=1;const draw=(after)=>{const A0=r+p.d;
+   m.innerHTML=`<p class="muted">Подбирай, сколько было у ${p.B}, и нажми «Передать».</p>
+    <div class="row">У ${p.B}: <button class="btn ghost" data-v="-1">−</button><b class="big2">${r}</b><button class="btn ghost" data-v="1">+</button> → у ${p.A}: <b class="big2">${A0}</b></div>
+    <div class="row"><button class="btn" data-a="go">Передать</button>${after?`<span>После: у ${p.A} <b>${A0-r}</b>, у ${p.B} <b>${2*r}</b> ${A0-r===2*r?'✓ поровну!':'— не поровну'}</span>`:''}</div>`;
+   m.querySelectorAll('[data-v]').forEach(x=>x.onclick=()=>{r=Math.max(1,r+ +x.dataset.v);draw(false)});m.querySelector('[data-a=go]').onclick=()=>draw(true)};draw(false)},
+ perm(o,m){const p=o.p;let cur=[],list=[];
+  const valid=s=>(!p.fi||s[0]===p.fi)&&(!p.af||s.indexOf(p.af[0])>s.indexOf(p.af[1]))&&(!p.adj||Math.abs(s.indexOf(p.adj[0])-s.indexOf(p.adj[1]))===1);
+  const draw=(msg)=>{m.innerHTML=`<p class="muted">Нажимай вещи по порядку, потом «Записать». Модель следит, чтобы варианты не повторялись.</p>
+    <div class="row">${p.it.map(x=>`<button class="chip" ${cur.includes(x)?'disabled':''}>${x}</button>`).join('')}</div>
+    <p>Сейчас: <b>${cur.join(' → ')||'…'}</b></p><div class="row"><button class="btn" data-a="w" ${cur.length===p.it.length?'':'disabled'}>Записать</button><button class="btn ghost" data-a="c">Стереть</button><span>Записано: <b>${list.length}</b></span></div>
+    ${msg?`<p class="msg info">${msg}</p>`:''}<ol class="plist">${list.map(s=>`<li>${s.join(' → ')}</li>`).join('')}</ol>`;
+   m.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{cur.push(b.textContent);draw()});
+   m.querySelector('[data-a=c]').onclick=()=>{cur=[];draw()};
+   m.querySelector('[data-a=w]').onclick=()=>{const k=cur.join('|');if(!valid(cur))return(cur=[],draw('Этот вариант не подходит по условию.'));if(list.some(s=>s.join('|')===k))return(cur=[],draw('Такой вариант уже есть.'));list.push(cur);cur=[];draw()}};draw()},
+ venn(o,m){const p=o.p,R=[['только '+p.A,p.nB-p.n0],['и то, и другое',p.N-p.nA-p.nB+p.n0],['только '+p.B,p.nA-p.n0],['ни то, ни другое',p.n0]];
+  m.innerHTML=`<svg viewBox="0 0 320 170" class="venn"><rect x="2" y="2" width="316" height="166" rx="12" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="120" cy="88" r="62" fill="rgba(42,109,244,.15)" stroke="#2a6df4" stroke-width="3"/><circle cx="200" cy="88" r="62" fill="rgba(224,51,45,.15)" stroke="#e0332d" stroke-width="3"/>
+   <text x="88" y="30" text-anchor="middle" font-size="13" font-weight="800" fill="currentColor">${esc(p.A)}</text><text x="232" y="30" text-anchor="middle" font-size="13" font-weight="800" fill="currentColor">${esc(p.B)}</text>
+   ${['90','160','230','290'].map((x,i)=>`<text x="${x}" y="${i===3?160:95}" text-anchor="middle" font-size="22" font-weight="900" fill="currentColor" class="vv${i}">?</text>`).join('')}</svg>
+   <p class="muted">Всего ${p.N}. Заполни части схемы (вне кругов — ${p.n0}).</p><div class="vgrid"></div>`;
+  const g=m.querySelector('.vgrid');R.forEach(([lbl,v],i)=>askNum(g,{label:lbl+':',ans:v,ok:()=>{m.querySelector('.vv'+i).textContent=v;prog('заполняет схему')},bad:()=>mark('рассуждение')}))}};
+const BLK={venn:['⭕','Круги Эйлера–Венна','#b8860b','Знаток кругов'],let:['🔤','Буквы-шифры','#e0332d','Дешифровщик'],box:['📦','Коробки в коробках','#e9800f','Мастер коробок'],ant:['🐜','Тропинки','#1d9a52','Следопыт'],cut:['✂️','Разрежь фигуру','#5a3fd4','Мастер разрезов'],legs:['🦵','Ноги и колёса','#0b8bb0','Знаток подбора'],
+ socks:['🧦','Наверняка!','#b0369a','Хитрый стратег'],scale:['⚖️','Весы-замена','#3657a8','Мастер весов'],swap:['🔄','Отдай поровну','#0f8a7a','Справедливый делитель'],perm:['🔀','Сколько способов?','#c2410c','Повелитель перебора']};
+// blocks go in the teacher's order: Euler–Venn circles first, letter puzzles second
+OL.sort((a,b)=>Object.keys(BLK).indexOf(a.ty)-Object.keys(BLK).indexOf(b.ty));
+const OWL=`<svg viewBox="0 0 60 60" class="owl" aria-hidden="true"><circle cx="30" cy="32" r="24" fill="#cfd6ff" stroke="#141b34" stroke-width="3"/><circle cx="30" cy="34" r="17" fill="#8a5a2b" stroke="#141b34" stroke-width="3"/><circle cx="23" cy="31" r="6" fill="#fff" stroke="#141b34" stroke-width="2"/><circle cx="37" cy="31" r="6" fill="#fff" stroke="#141b34" stroke-width="2"/><circle cx="23" cy="31" r="2.5" fill="#141b34"/><circle cx="37" cy="31" r="2.5" fill="#141b34"/><path d="M27 38l3 4 3-4z" fill="#ffc629" stroke="#141b34" stroke-width="1.5"/><path d="M14 12l6 8M46 12l-6 8" stroke="#141b34" stroke-width="3" stroke-linecap="round"/></svg>`;
+// adventure map: blocks are islands on a winding path, the owl stands at the block being played
+const PTS=[[90,70],[290,70],[490,70],[690,70],[890,70],[890,222],[690,222],[490,222],[290,222],[90,222]];
+function advMap(ok,g){const G=CS.groups,all=OL.filter(o=>ok.has(o.id)).length,won=G.every(x=>x.ids.every(id=>ok.has(id)));
+  const path='M'+PTS.map(p=>p.join(' ')).join(' L');
+  return `<div class="adv"><div class="advtop"><b>🗺️ Карта приключений</b><span>💎 Кристаллов: <b>${all} из ${OL.length}</b></span><span>🏅 Значков: <b>${G.filter(x=>x.ids.every(id=>ok.has(id))).length} из 10</b></span>${won?'<span>🏆 Кубок чемпиона!</span>':''}</div>
+   <svg viewBox="0 0 980 292" class="advsvg"><path d="${path}" fill="none" stroke="var(--olymp)" stroke-width="6" stroke-dasharray="4 14" stroke-linecap="round"/>
+   ${G.map((x,i)=>{const [cx,cy]=PTS[i],n=x.ids.filter(id=>ok.has(id)).length,full=n===x.ids.length;
+    return `<g class="isl ${x===g?'on':''}" data-g="${x.ids.join(',')}" role="button" tabindex="0" aria-label="${esc(x.name)}"><circle cx="${cx}" cy="${cy}" r="${x===g?44:38}" fill="${x.color}" stroke="${full?'#ffc629':'#141b34'}" stroke-width="${full?8:4}"/>
+     <text x="${cx}" y="${cy+11}" text-anchor="middle" font-size="30">${full?'🏅':x.icon}</text><text x="${cx}" y="${cy+62}" text-anchor="middle" class="il">${esc(x.name)}</text><text x="${cx}" y="${cy-48}" text-anchor="middle" class="il2">${'💎'.repeat(n)}${'◇'.repeat(x.ids.length-n)}</text></g>`}).join('')}
+   ${g?(([cx,cy])=>`<g transform="translate(${cx+30},${cy-62}) scale(.75)">${OWL.replace('<svg viewBox="0 0 60 60" class="owl" aria-hidden="true">','').replace('</svg>','')}</g>`)(PTS[G.indexOf(g)]):''}</svg></div>`}
+reg({id:'olymp',icon:'🏆',name:'Испытание чемпионов',cls:'c-olymp',blurb:'10 блоков-островов олимпиадных задач',items:OL,tabCls:'cards',groupHtml:advMap,
+ groups:Object.entries(BLK).map(([ty,[icon,name,color,badge]])=>({icon,name,color,badge,ty,ids:OL.filter(o=>o.ty===ty).map(o=>o.id)})),
+ onDone(ok){if(!ok)return;const g=CS.groups.find(x=>x.ids.includes(CS.items[CI].id)),own=okSet(CS);
+  if(g.ids.every(id=>own.has(id))){confetti(180);setTimeout(()=>sfx('win'),400);toast(`Сундук открыт! Значок «${g.badge}» 🏅`)}else confetti(60)},
+ about:'Путешествуй по карте: 10 островов, на каждом сундук с 4 задачами одного типа. За задачу — кристалл, за весь остров — значок. Сова-астронавт подскажет бесплатно, а неверный ответ отнимает жизнь.',
+ intro:`<p>Олимпиадную задачу не решают «по формуле». Помогают три приёма:</p><p>🧪 <b>Модель.</b> Попробуй руками: разложи, замени, подбери.</p><p>🔢 <b>Перебор по порядку.</b> Записывай варианты так, чтобы ничего не пропустить и не повторить.</p><p>✅ <b>Проверка.</b> Подставь ответ в условие — всё ли сходится?</p>`,
+ open(o,box){const g=CS.groups.find(x=>x.ids.includes(o.id)),k=g.ids.indexOf(o.id);$('#sec').style.setProperty('--bc',g.color);
+  const c=card(box,`<div class="chest"><span>🧰 Сундук «${esc(g.name)}»</span><span>Задача ${k+1} из 4</span></div><p class="task">${esc(o.t)}</p><div class="model"></div>`);c.classList.add('oc');
+  const m=c.querySelector('.model');const get=MOD[o.ty](o,m);
+  const ow=el(`<div class="owlbox">${OWL}<div class="bubble">Застрял? Спроси меня — подсказка бесплатная!</div><button class="btn ghost">🦉 Подсказка совы</button></div>`);c.appendChild(ow);let hk=0;
+  ow.querySelector('button').onclick=function(){if(hk>=o.h.length)return;ow.querySelector('.bubble').innerHTML=`<b>Подсказка ${hk+1}:</b> ${o.h[hk]}`;hk++;useHint();this.textContent=hk<o.h.length?`🦉 Ещё подсказка (${hk}/${o.h.length})`:'Подсказок больше нет';if(hk>=o.h.length)this.disabled=true};
+  if(o.ty==='let'){const w=el('<div class="row"><button class="btn big">Проверить слово</button></div>');c.appendChild(w);
+   w.querySelector('button').onclick=()=>{const v=get();if(v.includes('_')&&v.length)return toast('Выбери букву в каждой строке.');if(v===o.a){w.remove();finish(box,true,'слово '+o.a,`Верно! Слово — ${o.a}.`)}else{mark('рассуждение');toast('Пока не то слово. Посмотри на узор и размер букв.')}};return}
+  askNum(c,{label:'Ответ:',ans:o.a,unit:o.u||'',big:1,ok:()=>finish(box,true,'ответ '+o.a,`Верно! Ответ: ${o.a}${o.u?' '+o.u:''}.`),bad:()=>{mark('рассуждение');toast('Пока не так. Попробуй модель или возьми подсказку.')}})}});
+
+/* ===== DIVISION: sharing, grouping, number families, whack-a-mole, problems ===== */
+const DV=[
+ {id:'d1',name:'Мячи командам',k:'share',n:21,g:3,t:'Судья раздаёт 21 мяч поровну 3 командам. Сколько мячей получит каждая команда?',th:'⚽',gr:'команда'},
+ {id:'d2',name:'Вольеры',k:'share',n:15,g:5,t:'Смотритель расселяет 15 динозавриков поровну в 5 вольеров. Сколько динозавриков будет в каждом вольере?',th:'🦖',gr:'вольер'},
+ {id:'d3',name:'Звёзды',k:'share',n:18,g:3,t:'18 звёзд поделили поровну между 3 ракетами. Сколько звёзд досталось каждой ракете?',th:'⭐',gr:'ракета'},
+ {id:'d4',name:'Щиты героям',k:'share',n:20,g:4,t:'20 щитов раздали поровну 4 героям. Сколько щитов у каждого героя?',th:'🛡️',gr:'герой'},
+ {id:'d5',name:'Сетки для мячей',k:'group',n:16,by:4,t:'16 мячей разложили по 4 мяча в сетку. Сколько получилось сеток?',th:'⚽',gr:'сетка'},
+ {id:'d6',name:'Экипажи',k:'group',n:14,by:2,t:'14 космонавтов летят по 2 в каждой ракете. Сколько нужно ракет?',th:'👩‍🚀',gr:'ракета'},
+ {id:'d7',name:'Кости в ящиках',k:'group',n:36,by:6,t:'36 костей динозавра разложили по 6 в ящик. Сколько получилось ящиков?',th:'🦴',gr:'ящик'},
+ {id:'d8',name:'Команды героев',k:'group',n:30,by:5,t:'30 героев встали в команды по 5 человек. Сколько получилось команд?',th:'🦸',gr:'команда'},
+ {id:'d9',name:'Семья 6, 7, 42',k:'fam',f:[6,7,42]},{id:'d10',name:'Семья 8, 5, 40',k:'fam',f:[8,5,40]},
+ {id:'d11',name:'Семья 9, 3, 27',k:'fam',f:[9,3,27]},{id:'d12',name:'Семья 7, 8, 56',k:'fam',f:[7,8,56]},
+ {id:'d13',name:'Бей крота',k:'mole'},
+ {id:'d14',name:'Флажки болельщиков',k:'word',t:'54 флажка раздали поровну 6 болельщикам. Сколько флажков у каждого болельщика?',st:[['54 : 6 =',9]]},
+ {id:'d15',name:'Зубы динозавра',k:'word',t:'У тираннозавра на одной челюсти 32 зуба, а у детёныша — в 4 раза меньше. Сколько зубов у детёныша?',st:[['«В 4 раза меньше» — значит, делим на 4: 32 : 4 =',8]]},
+ {id:'d16',name:'Ящики с едой',k:'word',t:'Космонавты разложили 35 пакетов еды по 5 в каждый ящик. Сколько ящиков понадобилось?',st:[['По 5 в ящик — сколько раз по 5 в 35? 35 : 5 =',7]]},
+ {id:'d17',name:'Котята и щенки',k:'word',t:'Супергерой спас 10 котят, а щенков — в 2 раза меньше. Сколько всего животных он спас?',st:[['Сколько щенков? 10 : 2 =',5],['Сколько всего? 10 + 5 =',15]]},
+ {id:'d18',name:'Группы игроков',k:'word',t:'В команде 28 игроков. Их разделили на 4 равные группы, а потом из каждой группы 2 игрока ушли в запас. Сколько игроков осталось в каждой группе?',st:[['Сколько игроков в группе? 28 : 4 =',7],['Сколько осталось? 7 − 2 =',5]]},
+ {id:'d19',name:'Робот-сборщик',k:'word',t:'Робот за 8 часов собрал 48 деталей, каждый час поровну. Сколько деталей он соберёт за 3 часа?',st:[['Сколько деталей за 1 час? 48 : 8 =',6],['Сколько за 3 часа? 6 · 3 =',18]]}];
+const M={};
+reg({id:'div',icon:'➗',name:'Деление',cls:'c-div',blurb:'Раздели поровну и по сколько',items:DV,
+ about:'Деление — это обратное умножению. Делить можно поровну между группами или по сколько-то в каждую группу.',
+ intro:`<p><b>Знак деления</b> — две точки: <b>12 : 3 = 4</b>. Читаем: «двенадцать разделить на три равно четыре».</p>
+  <p><b>Раздели поровну.</b> 12 мячей на 3 команды: раздаём по одному каждой, пока не кончатся. У каждой — 4.</p>
+  <p><b>По сколько.</b> 12 мячей по 4 в сетку: сколько сеток? Тоже 12 : 4 = 3.</p>
+  <p><b>Секрет:</b> деление проверяем умножением. 12 : 3 = 4, потому что 4 · 3 = 12. Знаешь таблицу умножения — знаешь и деление!</p>`,
+ leave(){clearInterval(M.t)},
+ timeout(){if(CS.items[CI].k==='mole'){moleLife()}else{mark('время',true);toast('Время вышло! Можно решать дальше.')}},
+ open(it,box){const c=card(box,it.t?`<p class="task">${esc(it.t)}</p>`:'');const done=r=>finish(box,true,r||'выполнено');
+  if(it.k==='share'||it.k==='group'){const per=it.k==='share'?it.n/it.g:it.by,grp=it.k==='share'?it.g:it.n/it.by;let made=Array(it.k==='share'?it.g:0).fill(0),left=it.n;
+   const m=el('<div class="model div"></div>');c.appendChild(m);
+   const draw=()=>{m.innerHTML=`<div class="pool">${it.th.repeat(left)||'Все разложены!'}</div><div class="groups">${made.map((n,i)=>`<div class="grp"><small>${it.gr} ${i+1}</small><div>${it.th.repeat(n)}</div></div>`).join('')}</div>
+    <div class="row">${left?`<button class="btn">${it.k==='share'?'Раздать по одному каждой':'Положить '+it.by+' в новую: '+it.gr}</button>`:''}<span>Осталось: <b>${left}</b></span></div>`;
+    const b=m.querySelector('.btn');if(b)b.onclick=()=>{if(it.k==='share'){made=made.map(x=>x+1);left-=it.g}else{made.push(it.by);left-=it.by}prog('раскладывает');draw();if(!left)ask()}};
+   const ask=()=>askNum(c,{label:it.k==='share'?`Сколько в каждой группе? ${it.n} : ${it.g} =`:`Сколько групп? ${it.n} : ${it.by} =`,ans:it.k==='share'?per:grp,ok:()=>{c.appendChild(el(`<p class="msg ok">${it.n} : ${it.k==='share'?it.g:it.by} = ${it.k==='share'?per:grp}. Проверка умножением: ${per} · ${grp} = ${it.n}.</p>`));done(`${it.n} : ${it.k==='share'?it.g:it.by} = ${it.k==='share'?per:grp}`)},bad:()=>mark('деление')});
+   draw();return}
+  if(it.k==='fam'){const [a,b,p]=it.f;c.innerHTML=`<p class="task">Семья чисел: <b>${a}</b>, <b>${b}</b> и <b>${p}</b>. Из одного умножения получаются два деления. Заполни все четыре примера.</p>
+    <svg viewBox="0 0 200 120" class="tri" aria-hidden="true"><path d="M100 10 L190 110 H10Z" fill="none" stroke="var(--div)" stroke-width="4"/><text x="100" y="50" text-anchor="middle" font-size="22" font-weight="900" fill="currentColor">${p}</text><text x="55" y="100" text-anchor="middle" font-size="22" font-weight="900" fill="currentColor">${a}</text><text x="145" y="100" text-anchor="middle" font-size="22" font-weight="900" fill="currentColor">${b}</text></svg>`;
+   const Q=[[`${a} · ${b} =`,p,'таблица умножения'],[`${b} · ${a} =`,p,'таблица умножения'],[`${p} : ${a} =`,b,'деление'],[`${p} : ${b} =`,a,'деление']];let k=0;
+   const nx=()=>{if(k>=Q.length)return done();const q=Q[k++];askNum(c,{label:q[0],ans:q[1],ok:()=>{prog(`примеров: ${k} из 4`);nx()},bad:()=>mark(q[2])})};nx();return}
+  if(it.k==='word'){let k=0;const nx=()=>{if(k>=it.st.length)return done();const s=it.st[k++];askNum(c,{label:s[0],ans:s[1],ok:()=>{prog(`шаг ${k} из ${it.st.length}`);nx()},bad:()=>mark(/:/.test(s[0])?'деление':'вычисление')})};nx();return}
+  // whack-a-mole: tap the mole with the answer
+  clock.stop();Object.assign(M,{q:0,box,c,score:0});
+  c.innerHTML=`<p class="task">Кроты держат таблички с числами. Бей того, у кого ответ! 10 примеров.</p><div class="row"><span class="stepline" id="mQ"></span><span id="mL"></span><span>Счёт: <b id="mS">0</b></span></div><div class="holes">${'<button class="hole"><span></span></button>'.repeat(9)}</div><div class="row"><button class="btn big" id="mGo">Старт</button></div>`;
+  $('#mGo').onclick=()=>{$('#mGo').remove();moleNext();clock.start(()=>CS.timeout(A))};$('#mL').innerHTML=CFG.lives?hearts(lifeOf(names()[0])):'';
+  c.querySelectorAll('.hole').forEach(h=>h.onclick=()=>{const v=h.dataset.v;if(!v)return;if(+v===M.ans){sfx('ok');M.score++;$('#mS').textContent=M.score;prog(`верно: ${M.score} из ${M.q}`);moleNext()}else{h.classList.add('miss');moleLife()}})}});
+function moleNext(){clearInterval(M.t);if(M.q>=10){clock.stop();return finish(M.box,true,`${M.score} из 10`,`Отлично! Верно: ${M.score} из 10.`)}
+  const b=2+Math.random()*8|0,a=2+Math.random()*8|0;M.ans=a;M.q++;$('#mQ').textContent=`${M.q}) ${a*b} : ${b} = ?`;
+  const pop=()=>{const hs=[...M.c.querySelectorAll('.hole')];hs.forEach(h=>{h.dataset.v='';h.classList.remove('up','miss');h.querySelector('span').textContent=''});
+   const wr=shuffle([...new Set([a+1,a-1,a+2,b,a+3].filter(x=>x>0&&x!==a))]).slice(0,2);shuffle(hs).slice(0,3).forEach((h,i)=>{const v=i?wr[i-1]:a;h.dataset.v=v;h.classList.add('up');h.querySelector('span').textContent=v})};
+  pop();M.t=setInterval(pop,Math.round(2200/CFG.speed))}
+function moleLife(){mark('деление');const e=$('#mL');if(e)e.innerHTML=CFG.lives?hearts(lifeOf(names()[0])):'';if(!alive()){clearInterval(M.t);return}clock.start(()=>CS.timeout(A))}
+
+/* ===== COLUMN MULTIPLICATION: split, column, carrying ===== */
+const CL=[
+ {id:'k1',name:'Разложи 23 · 3',k:'split',a:23,m:3},{id:'k2',name:'Разложи 14 · 5',k:'split',a:14,m:5},{id:'k3',name:'Разложи 34 · 4',k:'split',a:34,m:4},{id:'k4',name:'Разложи 38 · 2',k:'split',a:38,m:2},
+ {id:'k5',name:'21 · 4',k:'col',a:21,m:4},{id:'k6',name:'32 · 3',k:'col',a:32,m:3},{id:'k7',name:'12 · 4',k:'col',a:12,m:4},{id:'k8',name:'43 · 2',k:'col',a:43,m:2},
+ {id:'k9',name:'18 · 5',k:'col',a:18,m:5},{id:'k10',name:'46 · 2',k:'col',a:46,m:2},{id:'k11',name:'29 · 3',k:'col',a:29,m:3},{id:'k12',name:'57 · 4',k:'col',a:57,m:4},{id:'k13',name:'36 · 6',k:'col',a:36,m:6},{id:'k14',name:'48 · 7',k:'col',a:48,m:7},
+ {id:'k15',name:'Стадион',k:'col',a:45,m:6,t:'На стадионе 6 секторов, в каждом по 45 мест. Сколько мест на стадионе?'},
+ {id:'k16',name:'Полёт ракеты',k:'col',a:85,m:3,t:'Ракета пролетает 85 км за минуту. Сколько километров она пролетит за 3 минуты?'},
+ {id:'k17',name:'Отряды героев',k:'col',a:16,m:7,t:'В 7 отрядах юных героев по 16 ребят. Сколько всего ребят?'}];
+reg({id:'col',icon:'✖️',name:'Умножение в столбик',cls:'c-col',blurb:'Двузначное на однозначное',items:CL,
+ about:'Сначала разбиваем число на десятки и единицы, потом учимся записывать умножение столбиком — с цифрой «в уме».',
+ intro:`<p><b>Разложи.</b> 27 · 4 — это 20 · 4 и 7 · 4. Считаем по частям: 80 + 28 = 108.</p>
+  <svg viewBox="0 0 300 90" aria-hidden="true"><rect x="10" y="10" width="200" height="60" fill="rgba(194,65,12,.2)" stroke="currentColor" stroke-width="2"/><rect x="210" y="10" width="70" height="60" fill="rgba(255,198,41,.35)" stroke="currentColor" stroke-width="2"/><text x="110" y="46" text-anchor="middle" font-weight="900" fill="currentColor">20 · 4 = 80</text><text x="245" y="46" text-anchor="middle" font-weight="900" fill="currentColor">7 · 4 = 28</text></svg>
+  <p><b>Столбиком.</b> Начинаем с единиц: 7 · 4 = 28. 8 пишем под единицами, 2 запоминаем — пишем маленькую 2 над десятками. Потом десятки: 2 · 4 = 8, и ещё 2 в уме: 8 + 2 = 10. Пишем 10. Ответ: 108.</p>`,
+ open(it,box){const t=Math.floor(it.a/10),u=it.a%10,m=it.m;const c=card(box,it.t?`<p class="task">${esc(it.t)}</p>`:'');
+  if(it.k==='split'){c.appendChild(el(`<p class="task">Разложи ${it.a} на десятки и единицы и умножь по частям: ${it.a} · ${m} = ${t*10} · ${m} + ${u} · ${m}</p>`));
+   const Q=[[`${t*10} · ${m} =`,t*10*m,'таблица умножения'],[`${u} · ${m} =`,u*m,'таблица умножения'],[`${t*10*m} + ${u*m} =`,it.a*m,'вычисление']];let k=0;
+   const nx=()=>{if(k>=Q.length)return finish(box,true,`${it.a} · ${m} = ${it.a*m}`,`Верно! ${it.a} · ${m} = ${it.a*m}.`);const q=Q[k++];askNum(c,{label:q[0],ans:q[1],ok:()=>{prog(`шаг ${k} из 3`);nx()},bad:()=>mark(q[2])})};nx();return}
+  const p1=u*m,cu=p1%10,cr=Math.floor(p1/10),p2=t*m+cr;
+  const col=el(`<div class="colm"><div class="cr"><span></span><span class="carry"></span><span></span></div><div><span></span><span>${t}</span><span>${u}</span></div><div class="mul"><span>×</span><span></span><span>${m}</span></div><div class="resr"><span class="h"></span><span class="tt"></span><span class="uu"></span></div></div>`);
+  const steps=el('<div class="steps"></div>');c.appendChild(el('<div class="colwrap"></div>'));c.lastChild.appendChild(col);c.lastChild.appendChild(steps);
+  const fin=()=>{const s=String(p2);col.querySelector('.tt').textContent=s.at(-1);col.querySelector('.h').textContent=s.length>1?s[0]:'';finish(box,true,`${it.a} · ${m} = ${it.a*m}`,`Верно! ${it.a} · ${m} = ${it.a*m}.`)};
+  const tens=()=>askNum(steps,{label:`Десятки: ${t} · ${m}${cr?' + '+cr+' (в уме)':''} =`,ans:p2,ok:fin,bad:v=>mark(cr&&+v===t*m?'переход через разряд':'таблица умножения')});
+  askNum(steps,{label:`Единицы: ${u} · ${m} =`,ans:p1,ok:()=>{prog('единицы умножены');
+   if(!cr){col.querySelector('.uu').textContent=cu;return tens()}
+   askNum(steps,{label:'Какую цифру пишем под единицами?',ans:cu,ok:()=>{col.querySelector('.uu').textContent=cu;
+    askNum(steps,{label:'Сколько запоминаем (пишем над десятками)?',ans:cr,ok:()=>{col.querySelector('.carry').textContent=cr;tens()},bad:()=>mark('переход через разряд')})},bad:()=>mark('переход через разряд')})},bad:()=>mark('таблица умножения')})}});
+
+whoRender();show('map');hello();
+</script>
+</body>
+</html>
